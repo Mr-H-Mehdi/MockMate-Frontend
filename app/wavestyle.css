@@ -1,0 +1,20 @@
+/* styles.css */
+@keyframes wave {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(5);
+    opacity: 0;
+  }
+}
+
+.animate-wave {
+  animation: wave 2s ease-out forwards;
+  position: absolute;
+  bottom: 50%;
+  right: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
