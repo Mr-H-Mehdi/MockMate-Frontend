@@ -4,9 +4,9 @@ import { Navbar } from "../components";
 import CVDropZone from "../components/cvupload/CVDropZone";
 import CVForm from "../components/cvupload/CVForm";
 import StartButton from "../components/cvupload/StartButton";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  // State to store the resume file and form data
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<{
     name: string;
@@ -16,12 +16,10 @@ export default function Home() {
   } | null>(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
 
-  // Handle file drop event (from Dropzone)
   const handleFileDrop = (file: File) => {
     setFile(file);
   };
 
-  // Update form fields with the response from the backend
   const handleFormDataUpdate = (data: any) => {
     setFormData({
       name: data.name || "",
@@ -31,59 +29,63 @@ export default function Home() {
     });
   };
 
-  // Handle form submission (from Form)
-  const handleFormSubmit = (data: {
-    name: string;
-    role: string;
-    projects: string;
-    skills: string;
-  }) => {
-    setFormData(data);
+  const router = useRouter();
+
+  const navigateToInterview = () => {
+    // Programmatically navigate to another page (Interview page)
+    router.push("/interview");
   };
 
-  // Handle button click
   const handleButtonClick = async () => {
     if (!file || !formData) {
       alert("Please complete the form and upload a file.");
       return;
     }
-  
-    // // Set session storage flag
-    // sessionStorage.setItem("cameFromCVUpload", "true");
-  
-    // if (!file || !formData) {
-    //   alert("Please complete the form and upload a file.");
-    //   return;
-    // }
 
-    // Prepare the data for submission (form data and file)
-    const formDataToSend = new FormData();
-    formDataToSend.append("file", file);
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("projects", formData.projects);
-    formDataToSend.append("skill", formData.skills);
+    const dataToSend = {
+      name: formData.name,
+      interview_role: formData.role,
+      skills: formData.skills,
+      projects: formData.projects,
+    };
 
-    // Call the backend API to submit the data
+    console.log("Data to send:", JSON.stringify(dataToSend));
+
     try {
+      console.log(dataToSend);
+      
       const response = await fetch(
-        "https://jsonplaceholder.typicode.com/posts",
+        "http://10.7.233.5:3000/api/interview/start-interview",
         {
           method: "POST",
-          body: formDataToSend,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Failed to submit data");
+        throw new Error("Failed to start interview");
       }
 
-      const data = await response.json();
-      console.log("Response:", data); // Handle API response
-      alert("Data submitted successfully!");
+      const result = await response.json();
+
+      const { user_id, audio_file_base64 } = result.message;
+
+      if (audio_file_base64) {
+        // Save to localStorage
+        localStorage.setItem("user_id", user_id);
+        localStorage.setItem("audio_file_base64", audio_file_base64);
+      }
+
+      // Proceed to interview page
+      alert("Interview started successfully!");
+      navigateToInterview();
+
     } catch (error) {
-      console.error(error);
-      alert("Error submitting data");
+      console.error("Error:", error);
+      alert("Error starting the interview");
     }
   };
 
@@ -102,7 +104,8 @@ export default function Home() {
           />
           <CVForm
             initialData={formData}
-            setIsFormComplete={setIsFormComplete} // Pass the function to update isFormComplete
+            setFormData={setFormData} // Pass down the setFormData function to update form data
+            setIsFormComplete={setIsFormComplete} // Pass down the setIsFormComplete function to update status
           />
           <StartButton
             styles=""
