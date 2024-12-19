@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "file-saver": "^2.0.5",
     "framer-motion": "^10.16.4",
     "next": "^14.2.20",
     "react": "^18",
@@ -18,6 +19,7 @@
     "wavesurfer.js": "^7.8.11"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

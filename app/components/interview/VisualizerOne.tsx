@@ -57,7 +57,7 @@ const VisualizerOne = () => {
         alt="billing"
         width={0}
         height={0}
-        className="sm:w-[60%] w-[60%] sm:h-[60%] h-[60%] relative z-[0]"
+        className="py-8 sm:w-[50%] w-[50%] sm:h-[50%] h-[50%] relative z-[0]"
         priority={true}
       />
 
@@ -80,12 +80,12 @@ const VisualizerOne = () => {
         />
       ))}
 
-      <button
+      {/* <button
         onClick={handlePlayAudio}
         className="absolute bottom-0 p-3 bg-blue-500 text-white rounded-md"
       >
         Play Audio and Show Waves /{" "}
-      </button>
+      </button> */}
     </motion.div>
 
     //   <div className="relative flex items-center justify-center w-1/3 h-96 bg-primary ">

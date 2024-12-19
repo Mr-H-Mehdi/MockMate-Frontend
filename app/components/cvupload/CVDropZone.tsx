@@ -1,4 +1,3 @@
-// components/CVDropZone.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -26,24 +25,16 @@ const CVDropZone = ({
         const formData = new FormData();
         formData.append("resume", file);
 
-        // console.log("response");
-        const response = await fetch(
-          `http://localhost:3000/api/resume/upload-resume`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        console.log(response);
+        const response = await fetch("http://localhost:3000/api/resume/upload-resume", {
+          method: "POST",
+          body: formData,
+        });
 
         if (!response.ok) {
           throw new Error("Failed to upload resume");
         }
 
         const data = await response.json();
-        console.log("API Response:", data);
-
-        // Pass the data to the parent component (CVForm)
         onFormDataUpdate(data.data);
       } catch (error) {
         console.error("Error uploading resume:", error);
@@ -74,7 +65,7 @@ const CVDropZone = ({
       </h2>
       <div
         {...getRootProps()}
-        className="cursor-pointer h-48 border-2 border-solid border-secondary p-16 text-center rounded-lg transition-colors hover:text-primary hover:bg-blue-50 "
+        className="cursor-pointer h-44 border-2 border-solid border-secondary p-16 text-center rounded-lg transition-colors hover:text-primary hover:bg-blue-50 "
       >
         <input {...getInputProps()} />
         <p>Drag and drop a file here, or click to select a file</p>

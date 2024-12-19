@@ -1,16 +1,17 @@
 'use client';
-// components/CVForm.tsx
 
 import React, { useState, useEffect } from 'react';
 
 const CVForm = ({
   initialData,
+  setFormData,
   setIsFormComplete,
 }: {
   initialData?: any;
+  setFormData: (data: any) => void;
   setIsFormComplete: (status: boolean) => void;
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormDataState] = useState({
     name: '',
     role: '',
     projects: '',
@@ -31,28 +32,48 @@ const CVForm = ({
   // Update the form data when initialData is received (for auto-filling)
   useEffect(() => {
     if (initialData) {
-      setFormData(prevData => ({
+      setFormDataState(prevData => ({
         name: initialData.name !== 'Name not found' ? initialData.name : prevData.name,
         role: initialData.qualification && initialData.qualification !== 'Qualification not found' ? initialData.qualification : prevData.role,
         projects: initialData.projects !== 'Projects not found' ? (Array.isArray(initialData.projects) ? initialData.projects.join(', ') : initialData.projects) : prevData.projects,
         skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : prevData.skills,
       }));
     }
-  }, [initialData]);
+  }, [initialData]);  // Depend only on initialData, not formData
+
+  // Update the parent state about form completion status (after render)
+  useEffect(() => {
+    setIsFormComplete(
+      formData.name !== '' &&
+      formData.role !== '' &&
+      formData.projects !== '' &&
+      formData.skills !== ''
+    );
+  }, [formData, setIsFormComplete]); // Dependencies: Update whenever formData changes
+
+  // Update parent state with the new form data only if it has changed
+  useEffect(() => {
+    if (formData) {
+      setFormData((prevState: { name: string; role: string; projects: string; skills: string; }) => {
+        if (
+          prevState?.name !== formData.name ||
+          prevState?.role !== formData.role ||
+          prevState?.projects !== formData.projects ||
+          prevState?.skills !== formData.skills
+        ) {
+          return formData;  // Only update if there's a change
+        }
+        return prevState;  // No change, so do nothing
+      });
+    }
+  }, [formData, setFormData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prevData => {
-      const updatedData = { ...prevData, [name]: value };
-      // Check if form is complete and update the parent state
-      setIsFormComplete(
-        updatedData.name !== '' &&
-        updatedData.role !== '' &&
-        updatedData.projects !== '' &&
-        updatedData.skills !== ''
-      );
-      return updatedData;
-    });
+    setFormDataState(prevData => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   return (
@@ -74,7 +95,7 @@ const CVForm = ({
           />
         </div>
 
-        {/* Education Field */}
+        {/* Role Field */}
         <div>
           <label htmlFor="role" className="block text-white font-medium mb-2">
             Role <span className="text-red-500">*</span>
