@@ -30,11 +30,15 @@ const CVDropZone = ({
           body: formData,
         });
 
+        // console.log(response);
+
+
         if (!response.ok) {
           throw new Error("Failed to upload resume");
         }
 
         const data = await response.json();
+        console.log(data.data);
         onFormDataUpdate(data.data);
       } catch (error) {
         console.error("Error uploading resume:", error);

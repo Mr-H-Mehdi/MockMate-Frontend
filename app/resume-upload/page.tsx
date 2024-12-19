@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { Navbar } from "../components";
-import CVDropZone from "../components/cvupload/CVDropZone";
-import CVForm from "../components/cvupload/CVForm";
-import StartButton from "../components/cvupload/StartButton";
+import CVDropZone from "../components/resume-upload/CVDropZone";
+import CVForm from "../components/resume-upload/CVForm";
+import StartButton from "../components/resume-upload/StartButton";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
