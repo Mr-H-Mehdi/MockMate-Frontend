@@ -1,9 +1,15 @@
 'use client';
 // components/CVForm.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const CVForm = () => {
+const CVForm = ({
+  initialData,
+  setIsFormComplete,
+}: {
+  initialData?: any;
+  setIsFormComplete: (status: boolean) => void;
+}) => {
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -11,26 +17,51 @@ const CVForm = () => {
     skills: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  // Function to clean up skills (remove non-skill related information)
+  const cleanSkills = (skillsData: string | string[]): string => {
+    if (Array.isArray(skillsData)) {
+      return skillsData.join(', ');
+    }
+    const splitSkills = skillsData.split('\n').filter(skill => {
+      return !skill.toLowerCase().includes('education') && !skill.toLowerCase().includes('university');
+    });
+    return splitSkills.join(', ');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(formData);
+  // Update the form data when initialData is received (for auto-filling)
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prevData => ({
+        name: initialData.name !== 'Name not found' ? initialData.name : prevData.name,
+        role: initialData.qualification && initialData.qualification !== 'Qualification not found' ? initialData.qualification : prevData.role,
+        projects: initialData.projects !== 'Projects not found' ? (Array.isArray(initialData.projects) ? initialData.projects.join(', ') : initialData.projects) : prevData.projects,
+        skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : prevData.skills,
+      }));
+    }
+  }, [initialData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prevData => {
+      const updatedData = { ...prevData, [name]: value };
+      // Check if form is complete and update the parent state
+      setIsFormComplete(
+        updatedData.name !== '' &&
+        updatedData.role !== '' &&
+        updatedData.projects !== '' &&
+        updatedData.skills !== ''
+      );
+      return updatedData;
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg shadow-lg py-3 my-8">
+    <form className="bg-gray-800 p-6 rounded-lg shadow-lg py-3 my-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Name Field */}
         <div>
           <label htmlFor="name" className="block text-white font-medium mb-2">
-            Name
+            Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -46,7 +77,7 @@ const CVForm = () => {
         {/* Education Field */}
         <div>
           <label htmlFor="role" className="block text-white font-medium mb-2">
-            Education
+            Role <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -62,7 +93,7 @@ const CVForm = () => {
         {/* Projects Field */}
         <div>
           <label htmlFor="projects" className="block text-white font-medium mb-2">
-            Projects
+            Projects <span className="text-red-500">*</span>
           </label>
           <textarea
             id="projects"
@@ -78,7 +109,7 @@ const CVForm = () => {
         {/* Skills Field */}
         <div>
           <label htmlFor="skills" className="block text-white font-medium mb-2">
-            Skills
+            Skills <span className="text-red-500">*</span>
           </label>
           <textarea
             id="skills"
@@ -91,16 +122,6 @@ const CVForm = () => {
           />
         </div>
       </div>
-
-      {/* Submit Button */}
-      {/* <div className="flex justify-center mt-6">
-        <button
-          type="submit"
-          className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Submit
-        </button>
-      </div> */}
     </form>
   );
 };

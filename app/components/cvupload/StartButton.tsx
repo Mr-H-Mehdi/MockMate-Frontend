@@ -2,18 +2,19 @@
 "use client";
 import React from "react";
 
-// Define types for the props
 interface StartButtonProps {
   text: string;
   styles: string;
   onClick: () => void;
+  disabled: boolean;
 }
 
-const StartButton: React.FC<StartButtonProps> = ({ text, styles, onClick }) => (
+const StartButton: React.FC<StartButtonProps> = ({ text, styles, onClick, disabled }) => (
   <button
     type="button"
-    className={`py-4 px-6 font-poppins font-medium text-[18px] text-primary bg-blue-gradient rounded-[10px] outline-none flex justify-end px-9 my-5 ${styles}`}
+    className={`py-4 px-6 font-poppins font-medium text-[18px] rounded-[10px] outline-none flex justify-end px-9 my-5 ${styles} ${disabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-gradient text-primary'}`}
     onClick={onClick}
+    disabled={disabled}
   >
     {text}
   </button>
