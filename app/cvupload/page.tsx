@@ -14,10 +14,21 @@ export default function Home() {
     projects: string;
     skills: string;
   } | null>(null);
+  const [isFormComplete, setIsFormComplete] = useState(false);
 
   // Handle file drop event (from Dropzone)
   const handleFileDrop = (file: File) => {
     setFile(file);
+  };
+
+  // Update form fields with the response from the backend
+  const handleFormDataUpdate = (data: any) => {
+    setFormData({
+      name: data.name || "",
+      role: data.qualification || "",
+      projects: data.projects.join(", ") || "",
+      skills: data.skills.join(", ") || "",
+    });
   };
 
   // Handle form submission (from Form)
@@ -30,11 +41,20 @@ export default function Home() {
     setFormData(data);
   };
 
+  // Handle button click
   const handleButtonClick = async () => {
     if (!file || !formData) {
       alert("Please complete the form and upload a file.");
       return;
     }
+  
+    // // Set session storage flag
+    // sessionStorage.setItem("cameFromCVUpload", "true");
+  
+    // if (!file || !formData) {
+    //   alert("Please complete the form and upload a file.");
+    //   return;
+    // }
 
     // Prepare the data for submission (form data and file)
     const formDataToSend = new FormData();
@@ -44,7 +64,7 @@ export default function Home() {
     formDataToSend.append("projects", formData.projects);
     formDataToSend.append("skill", formData.skills);
 
-    // Call a random API (e.g., JSONPlaceholder for demonstration)
+    // Call the backend API to submit the data
     try {
       const response = await fetch(
         "https://jsonplaceholder.typicode.com/posts",
@@ -76,12 +96,19 @@ export default function Home() {
       </header>
       <section className="bg-primary paddingX flexStart justify-end py-12">
         <section className="boxWidth">
-          <CVDropZone onFileDrop={handleFileDrop} />
-          <CVForm onSubmit={handleFormSubmit} />
+          <CVDropZone
+            onFileDrop={handleFileDrop}
+            onFormDataUpdate={handleFormDataUpdate}
+          />
+          <CVForm
+            initialData={formData}
+            setIsFormComplete={setIsFormComplete} // Pass the function to update isFormComplete
+          />
           <StartButton
             styles=""
             text="Start Interview"
             onClick={handleButtonClick}
+            disabled={!isFormComplete} // Disable the button if form is incomplete
           />
         </section>
       </section>
