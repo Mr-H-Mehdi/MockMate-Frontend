@@ -25,7 +25,7 @@ const CVDropZone = ({
         const formData = new FormData();
         formData.append("resume", file);
 
-        const response = await fetch("http://localhost:3000/api/resume/upload-resume", {
+        const response = await fetch("http://10.7.49.247:3000/api/resume/upload-resume", {
           method: "POST",
           body: formData,
         });

@@ -5,7 +5,7 @@ import { navVariants } from "../styles/animations";
 import Image from "next/image";
 import { close, logo, menu } from "../../public";
 import { navLinks } from "../constants";
-import Button from "./Button";
+import Button from "./User";
 
 const Navbar = () => {
   const [active, setActive] = useState("Home");
@@ -32,6 +32,11 @@ const Navbar = () => {
             <a href={`#${nav.id}`}>{nav.title}</a>
           </li>
         ))}
+        <li>
+          {/* <Button text="Login" styles="ml-8 py-1 text-[16px]"></Button> */}
+          <Button avatarSrc={logo} text="Click Me" />
+
+        </li>
       </ul>
 
       <div className="sm:hidden flex flex-1 justify-end items-center">
@@ -62,10 +67,10 @@ const Navbar = () => {
                 <a href={`#${nav.id}`}>{nav.title}</a>
               </li>
             ))}
+            {/* <Button text="Login" styles="m-8 py-1 text-[16px]"></Button> */}
           </ul>
         </div>
       </div>
-      {/* <Button styles={""}></Button> */}
     </motion.nav>
   );
 };

@@ -53,9 +53,9 @@ export default function Home() {
 
     try {
       console.log(dataToSend);
-      
+
       const response = await fetch(
-        "http://10.7.233.5:3000/api/interview/start-interview",
+        "http://10.7.49.247:3000/api/interview/start-interview",
         {
           method: "POST",
           headers: {
@@ -82,7 +82,6 @@ export default function Home() {
       // Proceed to interview page
       alert("Interview started successfully!");
       navigateToInterview();
-
     } catch (error) {
       console.error("Error:", error);
       alert("Error starting the interview");

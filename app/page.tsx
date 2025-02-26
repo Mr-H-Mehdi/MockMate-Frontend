@@ -1,4 +1,4 @@
-'use Client';
+"use Client";
 
 import {
   Navbar,
@@ -12,6 +12,7 @@ import {
   CTA,
   Footer,
 } from "./components";
+import CodeEditor from "./components/CodeEditor";
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
           <Hero />
         </section>
       </section>
+      {/* <CodeEditor/> */}
       <section className=" bg-primary paddingX flexStart">
         <section className="boxWidth">
           <Stats />

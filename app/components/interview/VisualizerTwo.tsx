@@ -47,7 +47,7 @@ const VisualizerTwo = () => {
               const formData = new FormData();
               formData.append("user_id", userId!);
               formData.append("audio", audioBlob);
-              fetch("http://10.7.233.5:3000/api/interview/process-response", {
+              fetch("http://10.7.49.247:3000/api/interview/process-response", {
                 method: "POST",
                 body: formData,
               })

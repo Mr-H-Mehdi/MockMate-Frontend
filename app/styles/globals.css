@@ -185,3 +185,8 @@
     @apply flex-1 flexStart flex-col;
   }
 }
+@layer utilities {
+  .transition-all-850 {
+    transition: all 0.85s ease-in-out;
+  }
+}

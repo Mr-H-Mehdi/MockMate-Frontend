@@ -30,8 +30,9 @@ const InterviewPage = () => {
       const audioBlob = base64ToBlob(audioFileBase64, "audio/mp3");
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
-      
-      audio.play()
+
+      audio
+        .play()
         .then(() => {
           console.log("Audio is playing...");
         })
