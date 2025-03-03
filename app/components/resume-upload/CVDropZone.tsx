@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 
+const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
 const CVDropZone = ({
   onFileDrop,
   onFormDataUpdate,
@@ -24,8 +26,10 @@ const CVDropZone = ({
       try {
         const formData = new FormData();
         formData.append("resume", file);
-
-        const response = await fetch("http://10.7.49.247:3000/api/resume/upload-resume", {
+        console.log("apiUrl");
+        console.log(apiUrl);
+        
+        const response = await fetch(`${apiUrl}/api/resume/upload-resume`, {
           method: "POST",
           body: formData,
         });

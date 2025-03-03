@@ -6,10 +6,14 @@ const CVForm = ({
   initialData,
   setFormData,
   setIsFormComplete,
+  totalQuestions,
+  setTotalQuestions,
 }: {
   initialData?: any;
   setFormData: (data: any) => void;
   setIsFormComplete: (status: boolean) => void;
+  totalQuestions: number;
+  setTotalQuestions: (value: number) => void;
 }) => {
   const [formData, setFormDataState] = useState({
     name: '',
@@ -18,7 +22,6 @@ const CVForm = ({
     skills: '',
   });
 
-  // Function to clean up skills (remove non-skill related information)
   const cleanSkills = (skillsData: string | string[]): string => {
     if (Array.isArray(skillsData)) {
       return skillsData.join(', ');
@@ -29,7 +32,6 @@ const CVForm = ({
     return splitSkills.join(', ');
   };
 
-  // Update the form data when initialData is received (for auto-filling)
   useEffect(() => {
     if (initialData) {
       setFormDataState(prevData => ({
@@ -39,9 +41,8 @@ const CVForm = ({
         skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : prevData.skills,
       }));
     }
-  }, [initialData]);  // Depend only on initialData, not formData
+  }, [initialData]);
 
-  // Update the parent state about form completion status (after render)
   useEffect(() => {
     setIsFormComplete(
       formData.name !== '' &&
@@ -49,9 +50,8 @@ const CVForm = ({
       formData.projects !== '' &&
       formData.skills !== ''
     );
-  }, [formData, setIsFormComplete]); // Dependencies: Update whenever formData changes
+  }, [formData, setIsFormComplete]);
 
-  // Update parent state with the new form data only if it has changed
   useEffect(() => {
     if (formData) {
       setFormData((prevState: { name: string; role: string; projects: string; skills: string; }) => {
@@ -61,9 +61,9 @@ const CVForm = ({
           prevState?.projects !== formData.projects ||
           prevState?.skills !== formData.skills
         ) {
-          return formData;  // Only update if there's a change
+          return formData;
         }
-        return prevState;  // No change, so do nothing
+        return prevState;
       });
     }
   }, [formData, setFormData]);
@@ -74,6 +74,10 @@ const CVForm = ({
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleQuestionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTotalQuestions(Number(e.target.value)); // Update the totalQuestions state
   };
 
   return (
@@ -141,6 +145,24 @@ const CVForm = ({
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
             placeholder="Enter your skills"
           />
+        </div>
+
+        {/* Total Questions Dropdown */}
+        <div className='flex '>
+          <label htmlFor="total_questions" className="w-1/3 pt-2.5 grow-1 block text-white font-medium mb-2 relative ">
+            Total Questions <span className="text-red-500">:</span>
+          </label>
+          <select
+            id="total_questions"
+            name="total_questions"
+            value={totalQuestions}
+            onChange={handleQuestionChange}
+            className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+          </select>
         </div>
       </div>
     </form>
