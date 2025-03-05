@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Navbar } from "../components";
+import { Navbar } from "../components/home";
 import CVDropZone from "../components/resume-upload/CVDropZone";
 import CVForm from "../components/resume-upload/CVForm";
 import StartButton from "../components/resume-upload/StartButton";
@@ -52,7 +52,8 @@ export default function Home() {
   };
 
   const handleButtonClick = async () => {
-    if (!file || !formData) {
+    // if (!file || !formData) {
+    if (!formData) {
       alert("Please complete the form and upload a file.");
       return;
     }

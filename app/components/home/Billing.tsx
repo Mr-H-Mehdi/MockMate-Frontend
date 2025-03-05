@@ -1,6 +1,6 @@
 "use client";
-import { accessibility, apple, bill, google } from "../../public";
-import { slideIn } from "../styles/animations";
+import { accessibility, apple, bill, google } from "../../../public";
+import { slideIn } from "../../styles/animations";
 import Image from "next/image";
 import { motion } from "framer-motion";
 

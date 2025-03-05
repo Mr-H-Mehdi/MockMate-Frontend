@@ -49,7 +49,7 @@ const CodingPage = () => {
 
       // Mark that we're making the API request
       apiRequestMadeRef.current = true;
-      
+
       // Fetch the coding question from the API
       fetchCodingQuestion(storedInterviewId, "javascript");
     } else {
@@ -154,22 +154,53 @@ const CodingPage = () => {
     setIsModalOpen(false);
   };
 
-  const handleCodeSubmit = (code: any, language: string) => {
+  const handleCodeSubmit = async (code: any, language: string) => {
     console.log(`Submitting ${language} code solution:`, code);
 
     // Create payload for API call
     const payload = {
       interview_id: interviewId,
-      problem_id: codingProblems[currentProblemIndex].id,
       code: code,
-      language: language,
     };
 
     // Log the payload (for demo purposes)
     console.log("API payload:", payload);
 
+    const requestBody = {
+      interview_id: interviewId,
+      user_code: code,
+    };
+    
+    // Check if interviewId and code are not undefined
+    if (interviewId && code) {
+      console.log("Interview ID:", interviewId);
+      console.log("Code solution:", code);
+    
+      fetch(`${apiUrl}/api/coding/evaluate-code`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Specify content type as JSON
+        },
+        body: JSON.stringify(requestBody), // Stringify the request body
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Server Response:", data);
+          if (data.status === "success") {
+            console.log("Code processed successfully!");
+          } else {
+            console.error("Server error:", data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Request failed", error);
+        });
+    } else {
+      console.error("Invalid input: Missing interviewId or code.");
+    }
+    
     // Simulate API call
-    console.log(`Sending code to ${apiUrl}/api/coding/submit-solution`);
+    console.log(`Sending code to ${apiUrl}/api/coding/evaluate-code`);
 
     // Show a simple alert
     alert(

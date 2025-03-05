@@ -1,5 +1,5 @@
-import { logofull } from "../../public";
-import { footerLinks, socialMedia } from "../constants";
+import { logofull } from "../../../public";
+import { footerLinks, socialMedia } from "../../constants";
 import Image from "next/image";
 
 const Footer = () => (

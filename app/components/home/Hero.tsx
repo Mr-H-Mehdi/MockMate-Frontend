@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { slideIn } from "../styles/animations";
-import { discount, robot } from "../../public";
+import { slideIn } from "../../styles/animations";
+import { discount, robot } from "../../../public";
 import GetStarted from "./GetStarted";
 
 const Hero = () => {

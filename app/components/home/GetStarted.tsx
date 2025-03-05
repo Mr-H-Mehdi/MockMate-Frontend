@@ -1,5 +1,5 @@
 import Link from 'next/link'; // Import Link from next/link
-import { arrowUp } from "../../public";
+import { arrowUp } from "../../../public";
 import Image from "next/image";
 
 const GetStarted = () => (

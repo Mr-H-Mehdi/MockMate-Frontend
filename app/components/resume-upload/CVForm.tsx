@@ -159,6 +159,7 @@ const CVForm = ({
             onChange={handleQuestionChange}
             className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
           >
+            <option value={1}>1</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>

@@ -11,8 +11,8 @@ import {
   Clients,
   CTA,
   Footer,
-} from "./components";
-import CodeEditor from "./components/CodeEditor";
+} from "./components/home";
+import CodeEditor from "./components/home/CodeEditor";
 
 export default function Home() {
   return (

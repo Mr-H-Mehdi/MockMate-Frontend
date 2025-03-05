@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import { zoomIn } from "../styles/animations";
-import { quotes } from "../../public";
+import { zoomIn } from "../../styles/animations";
+import { quotes } from "../../../public";
 import Image, { StaticImageData } from "next/image";
 
 interface feedbackCardPropTypes {

@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { navVariants } from "../styles/animations";
+import { navVariants } from "../../styles/animations";
 import Image from "next/image";
-import { close, logo, menu } from "../../public";
-import { navLinks } from "../constants";
+import { close, logo, menu } from "../../../public";
+import { navLinks } from "../../constants";
 import Button from "./User";
 
 const Navbar = () => {

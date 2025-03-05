@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { Navbar } from "../components";
+import { Navbar } from "../components/home";
 import VisualizerOne from "../components/interview/VisualizerOne";
 import VisualizerTwo from "../components/interview/VisualizerTwo";
 import Image from "next/image";
@@ -9,6 +9,41 @@ import Modal from "../components/interview/Modal";
 import Sidebar from "../components/interview/SideBar";
 import MainContent from "../components/interview/MainContent";
 import { useRouter } from "next/navigation";
+
+// Add global styles for animations
+const animationStyles = `
+@keyframes visualizerAnimation {
+  0% {
+    height: 5px;
+  }
+  100% {
+    height: 30px;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+}
+`;
 
 const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -40,9 +75,19 @@ const InterviewPage = () => {
     null
   );
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   // Use a ref to track if recording was discarded
   const isDiscardedRef = useRef(false);
+
+  useEffect(() => {
+    // Set page as loaded after a short delay for animations
+    const timer = setTimeout(() => {
+      setPageLoaded(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const storedInterviewId = localStorage.getItem("interview_id");
@@ -130,10 +175,19 @@ const InterviewPage = () => {
   const handleTerminateInterview = () => {
     console.log("Interview terminated.");
     setIsModalOpen(false);
+    // Add animation for navigation
+    document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
+    setTimeout(() => {
+      router.push("/");
+    }, 500);
   };
 
   const handleProceedToCoding = () => {
-    router.push("/coding");
+    // Add animation for navigation
+    document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
+    setTimeout(() => {
+      router.push("/coding");
+    }, 500);
   };
 
   const handleRecordingToggle = async () => {
@@ -293,54 +347,61 @@ const InterviewPage = () => {
   : total_questions;
 
   return (
-    <main className="h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center">
-      <Sidebar
-        question={question!}
-        shouldShowReplay={true}
-        question_statement={`Question ${displayQuestionNo} out of ${total_questions}`}
-        onTerminate={() => setIsModalOpen(true)}
-        onReplay={handleReplayAudio} // Pass replay handler to Sidebar
-        isReplayEnabled={isAudioPlayed && !isRecording} // Enable replay if audio played and not recording
-      />
-      <MainContent
-        interviewData={interviewData}
-        isIntervieweeDisabled={isIntervieweeDisabled}
-        isRecording={isRecording}
-        elapsedTime={elapsedTime}
-        onStartRecording={handleRecordingToggle}
-        onDiscardRecording={handleDiscardRecording}
-        buttonText={buttonText} // Pass the button text state to the MainContent
-        permissionError={permissionError} // Pass error message to MainContent
-      />
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTerminate={handleTerminateInterview}
-      />
-      {/* Completion Modal */}
-      {isCompletionModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4">Interview Completed!</h2>
-            <p className="mb-6">
-              Congratulations! You've completed the voice-based portion of the
-              interview. Now it's time to move on to the coding assessment.
-            </p>
-            <button
-              className={`px-6 py-2 rounded-lg ${
-                !isIntervieweeDisabled
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
-              }`}
-              onClick={handleProceedToCoding}
-              disabled={isIntervieweeDisabled}
-            >
-              Continue to Coding Assessment
-            </button>
+    <>
+      {/* Add animation styles */}
+      <style jsx global>{animationStyles}</style>
+      
+      <main className={`h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <Sidebar
+          question={question || "Loading question..."}
+          shouldShowReplay={true}
+          question_statement={`Question ${displayQuestionNo} out of ${total_questions}`}
+          onTerminate={() => setIsModalOpen(true)}
+          onReplay={handleReplayAudio} // Pass replay handler to Sidebar
+          isReplayEnabled={!isIntervieweeDisabled && isAudioPlayed && !isRecording} // Enable replay if audio played and not recording
+        />
+        <MainContent
+          interviewData={interviewData}
+          isIntervieweeDisabled={isIntervieweeDisabled}
+          isRecording={isRecording}
+          elapsedTime={elapsedTime}
+          onStartRecording={handleRecordingToggle}
+          onDiscardRecording={handleDiscardRecording}
+          buttonText={buttonText} // Pass the button text state to the MainContent
+          permissionError={permissionError} // Pass error message to MainContent
+        />
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onTerminate={handleTerminateInterview}
+        />
+        
+        {/* Enhanced Completion Modal */}
+        {isCompletionModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate__animated animate__fadeIn">
+            <div className="bg-dimWhite rounded-lg p-8 max-w-md mx-auto text-center shadow-2xl animate__animated animate__zoomIn">
+              <div className="text-5xl mb-4 animate__animated animate__bounceIn animate__delay-1s">🎉</div>
+              <h2 className="text-2xl font-bold mb-4 text-blue-600">Interview Completed!</h2>
+              <p className="mb-6">
+                Congratulations! You've completed the voice-based portion of the
+                interview. Now it's time to move on to the coding assessment.
+              </p>
+              <button
+                className={`px-6 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${
+                  !isIntervieweeDisabled
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                } animate__animated animate__pulse animate__infinite animate__slow`}
+                onClick={handleProceedToCoding}
+                disabled={isIntervieweeDisabled}
+              >
+                Continue to Coding Assessment →
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import { card } from "../../public";
-import { slideIn } from "../styles/animations";
+import { card } from "../../../public";
+import { slideIn } from "../../styles/animations";
 import Button from "./Button";
 import Image from "next/image";
 

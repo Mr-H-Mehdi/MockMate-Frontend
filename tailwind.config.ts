@@ -11,6 +11,8 @@ const config: Config = {
       colors: {
         primary: "#00040f",
         secondary: "#00f6ff",
+        hoverSecondary: "rgb(0, 147, 192)",
+        onSecondary: "rgb(22, 66, 79)",
         dimWhite: "rgba(255, 255, 255, 0.7)",
         dimBlue: "rgba(9, 151, 124, 0.1)",
       },
