@@ -1,4 +1,5 @@
 import airbnb from "./airbnb.png";
+import ai from "./ai.png";
 import bill from "./bill.png";
 import binance from "./binance.png";
 import card from "./computer.png";
@@ -29,6 +30,7 @@ import people03 from "./people03.png";
 import accessibility from "./accessibility1.png";
 
 export {
+  ai,
   accessibility,
   airbnb,
   bill,

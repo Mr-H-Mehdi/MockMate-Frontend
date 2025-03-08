@@ -1,12 +1,6 @@
 // authpage.tsx
-
-'use client';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Image from "next/image";
-import { ai, logo } from '@/public';
-
-const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -49,66 +43,6 @@ const Auth = () => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-
-    if (isLogin){
-      const requestBody = {
-        email: email,
-        password: password
-      };
-      
-      console.log("Request body:", requestBody); // Check what data is being sent
-      
-      fetch(`${apiUrl}/api/authenticate/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
-      })
-      .then((response) => {
-          console.log("Sign in initiated. response: ", response.data);
-          if (response.ok) {
-            console.log("Sign in successful. response: ", response);
-          } else {
-            console.log(`Failed to sign in. Status: ${response.status}`);
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-      
-        
-      // Reset loading state
-      setIsLoading(false);
-      return;
-    }
-    const requestBody = {
-      name: name,
-      email: email,
-      password: password
-    };
-    
-    console.log("Request body:", requestBody); // Check what data is being sent
-    
-    fetch(`${apiUrl}/api/authenticate/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Sign up successful.");
-        } else {
-          console.log(`Failed to sign up. Status: ${response.status}`);
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-    
-      
     // Reset loading state
     setIsLoading(false);
   };
@@ -118,7 +52,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-black to-cyan-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Floating particles background */}
       {particles.map((particle, index) => (
         <div 
@@ -134,32 +68,24 @@ const Auth = () => {
         />
       ))}
       
-
       {/* Glowing orb */}
-      <div className="absolute w-64 h-64 rounded-full bg-cyan-900  filter blur-3xl opacity-20 animate-pulse" />
+      <div className="absolute w-64 h-64 rounded-full bg-purple-500 filter blur-3xl opacity-20 animate-pulse" />
       
-      <Image src={logo} alt="hoobank" width={60} height={60} className="right-[0%] relative bottom-72" loading="eager" />
-      <div className='text-white right-[0%] relative bottom-72 font-bold text-3xl'>MockMate</div>
-      <div className='text-white  right-[14%] relative bottom-56 font-semibold text-lg whitespace-nowrap'>Utilize the power of AI for your next venture</div>
-      <Image src={ai} alt="AI Avatar" width={560}  className="top-12 right-72   relative" loading="eager" />
-
       {/* Glass card */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative w-full right-16 max-w-md backdrop-blur-lg bg-black/10 p-8 rounded-2xl shadow-2xl border border-white/40 z-10"
+        className="relative w-full max-w-md backdrop-blur-lg bg-white/10 p-8 rounded-2xl shadow-2xl border border-white/20 z-10"
       >
         {/* Logo placeholder */}
         <div className="flex justify-center mb-6">
           <motion.div 
             whileHover={{ rotate: 10, scale: 1.05 }}
-            className="w-20 h-20 rounded-xl bg-gradient-to-r from-black  via-cyan-900 to-black flex items-center justify-center shadow-lg"
+            className="w-16 h-16 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg"
           >
-            {/* MockMate logo */}
-        <Image src={logo} alt="hoobank" width={60} height={60} loading="eager" />
-            
-            {/* <span className="text-white text-2xl font-bold">A</span> */}
+            {/* Replace with your actual logo */}
+            <span className="text-white text-2xl font-bold">A</span>
           </motion.div>
         </div>
         
@@ -227,7 +153,7 @@ const Auth = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-cyan  via-black  to-cyan-900 text-white font-medium rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition border border-cyan-900 mt-6"
+              className="w-full py-3 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition mt-6"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -278,7 +204,7 @@ const Auth = () => {
                 <span className="sr-only">GitHub</span>
                 <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
                   {/* Replace with actual GitHub icon */}
-                  <span className="text-xs font-bold text-white">f</span>
+                  <span className="text-xs font-bold text-white">G</span>
                 </div>
               </motion.button>
               
