@@ -149,9 +149,37 @@ const CodingPage = () => {
   };
 
   const handleTerminateInterview = () => {
-    console.log("Interview terminated.");
-    router.push("/");
+    console.log("initiating terminate request with id:", interviewId);
+    const requestBody = {
+      interview_id: interviewId,
+    };
+    
+
+    fetch(`${apiUrl}/api/interview/terminate-interview`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Interview terminated successfully.");
+        } else {
+          console.log(
+            `Failed to terminate interview. Status: ${response.status}`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
     setIsModalOpen(false);
+    // Add animation for navigation
+    document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
+    setTimeout(() => {
+      router.replace("/");
+    }, 500);
   };
 
   const handleCodeSubmit = async (code: any, language: string) => {
@@ -170,13 +198,13 @@ const CodingPage = () => {
       interview_id: interviewId,
       user_code: code,
     };
-    
+
     // Check if interviewId and code are not undefined
     if (interviewId && code) {
       console.log("Interview ID:", interviewId);
       console.log("Code solution:", code);
-    
-      fetch(`${apiUrl}/api/coding/evaluate-code`, {
+
+      fetch(`${apiUrl}/api/feedback/detailed-feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // Specify content type as JSON
@@ -198,7 +226,7 @@ const CodingPage = () => {
     } else {
       console.error("Invalid input: Missing interviewId or code.");
     }
-    
+
     // Simulate API call
     console.log(`Sending code to ${apiUrl}/api/coding/evaluate-code`);
 

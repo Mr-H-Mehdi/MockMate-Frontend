@@ -77,8 +77,8 @@ const MainContent = ({
                     className="bg-blue-500 w-1 rounded-full"
                     style={{
                       height: `${20 + Math.random() * 30}px`,
-                      animation: `visualizerAnimation ${0.5 + Math.random() * 0.5}s ease-in-out infinite alternate`,
-                      animationDelay: `${bar * 0.08}s`
+                      // FIX: Combine all animation properties into a single shorthand
+                      animation: `visualizerAnimation ${0.5 + Math.random() * 0.5}s ease-in-out ${bar * 0.08}s infinite alternate`
                     }}
                   ></div>
                 ))}
@@ -140,8 +140,8 @@ const MainContent = ({
                     className="bg-green-500 w-1 rounded-full"
                     style={{
                       height: `${10 + Math.random() * 20}px`,
-                      animation: `visualizerAnimation ${0.3 + Math.random() * 0.3}s ease-in-out infinite alternate`,
-                      animationDelay: `${bar * 0.05}s`
+                      // FIX: Combine all animation properties into a single shorthand
+                      animation: `visualizerAnimation ${0.3 + Math.random() * 0.3}s ease-in-out ${bar * 0.05}s infinite alternate`
                     }}
                   ></div>
                 ))}

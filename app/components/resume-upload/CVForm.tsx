@@ -15,12 +15,15 @@ const CVForm = ({
   totalQuestions: number;
   setTotalQuestions: (value: number) => void;
 }) => {
-  const [formData, setFormDataState] = useState({
+  const [localFormData, setLocalFormData] = useState({
     name: '',
     role: '',
     projects: '',
     skills: '',
   });
+  
+  // Flag to track if initialData has been processed
+  const [initialDataProcessed, setInitialDataProcessed] = useState(false);
 
   const cleanSkills = (skillsData: string | string[]): string => {
     if (Array.isArray(skillsData)) {
@@ -32,52 +35,47 @@ const CVForm = ({
     return splitSkills.join(', ');
   };
 
+  // Only process initialData once when it becomes available
   useEffect(() => {
-    if (initialData) {
-      setFormDataState(prevData => ({
-        name: initialData.name !== 'Name not found' ? initialData.name : prevData.name,
-        role: initialData.qualification && initialData.qualification !== 'Qualification not found' ? initialData.qualification : prevData.role,
-        projects: initialData.projects !== 'Projects not found' ? (Array.isArray(initialData.projects) ? initialData.projects.join(', ') : initialData.projects) : prevData.projects,
-        skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : prevData.skills,
-      }));
+    if (initialData && !initialDataProcessed) {
+      const processedData = {
+        name: initialData.name !== 'Name not found' ? initialData.name : '',
+        role: initialData.qualification && initialData.qualification !== 'Qualification not found' ? initialData.qualification : '',
+        projects: initialData.projects !== 'Projects not found' ? (Array.isArray(initialData.projects) ? initialData.projects.join(', ') : initialData.projects) : '',
+        skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : '',
+      };
+      
+      setLocalFormData(processedData);
+      setFormData(processedData);
+      setInitialDataProcessed(true);
     }
-  }, [initialData]);
+  }, [initialData, initialDataProcessed, setFormData]);
 
+  // Check form completeness when local data changes
   useEffect(() => {
-    setIsFormComplete(
-      formData.name !== '' &&
-      formData.role !== '' &&
-      formData.projects !== '' &&
-      formData.skills !== ''
-    );
-  }, [formData, setIsFormComplete]);
+    const isComplete = 
+      localFormData.name !== '' &&
+      localFormData.role !== '' &&
+      localFormData.projects !== '' &&
+      localFormData.skills !== '';
+    
+    setIsFormComplete(isComplete);
+  }, [localFormData, setIsFormComplete]);
 
-  useEffect(() => {
-    if (formData) {
-      setFormData((prevState: { name: string; role: string; projects: string; skills: string; }) => {
-        if (
-          prevState?.name !== formData.name ||
-          prevState?.role !== formData.role ||
-          prevState?.projects !== formData.projects ||
-          prevState?.skills !== formData.skills
-        ) {
-          return formData;
-        }
-        return prevState;
-      });
-    }
-  }, [formData, setFormData]);
-
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormDataState(prevData => ({
-      ...prevData,
-      [name]: value,
-    }));
+    const updatedData = {
+      ...localFormData,
+      [name]: value
+    };
+    
+    setLocalFormData(updatedData);
+    setFormData(updatedData);
   };
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTotalQuestions(Number(e.target.value)); // Update the totalQuestions state
+    setTotalQuestions(Number(e.target.value));
   };
 
   return (
@@ -92,7 +90,7 @@ const CVForm = ({
             type="text"
             id="name"
             name="name"
-            value={formData.name}
+            value={localFormData.name}
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
             placeholder="Enter your name"
@@ -108,7 +106,7 @@ const CVForm = ({
             type="text"
             id="role"
             name="role"
-            value={formData.role}
+            value={localFormData.role}
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
             placeholder="Enter your role"
@@ -123,7 +121,7 @@ const CVForm = ({
           <textarea
             id="projects"
             name="projects"
-            value={formData.projects}
+            value={localFormData.projects}
             onChange={handleChange}
             rows={4}
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
@@ -139,7 +137,7 @@ const CVForm = ({
           <textarea
             id="skills"
             name="skills"
-            value={formData.skills}
+            value={localFormData.skills}
             onChange={handleChange}
             rows={4}
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
@@ -160,6 +158,7 @@ const CVForm = ({
             className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
           >
             <option value={1}>1</option>
+            <option value={3}>3</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>

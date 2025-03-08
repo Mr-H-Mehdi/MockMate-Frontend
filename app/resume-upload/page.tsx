@@ -90,10 +90,10 @@ export default function Home() {
       const result = await response.json();
 
       const { interview_id, audio_file_base64, question, question_no, total_questions  } = result.message;
-      console.log("result:", result);
-      console.log("result     q:", question);
-      console.log("result     q    no:", question_no);
-      console.log("result     q    total:", total_questions);
+      // console.log("result:", result);
+      // console.log("result     q:", question);
+      // console.log("result     q    no:", question_no);
+      // console.log("result     q    total:", total_questions);
 
       if (audio_file_base64) {
         

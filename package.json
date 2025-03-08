@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -14,6 +13,8 @@
     "animate.css": "^4.1.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^10.16.4",
+    "jspdf": "^3.0.0",
+    "lucide-react": "^0.477.0",
     "next": "^14.2.20",
     "react": "^18",
     "react-audio-player": "^0.17.0",

@@ -173,12 +173,36 @@ const InterviewPage = () => {
   };
 
   const handleTerminateInterview = () => {
-    console.log("Interview terminated.");
+    console.log("initiating terminate request with id:", interviewId);
+    const requestBody = {
+      interview_id: interviewId,
+    };
+    
+
+    fetch(`${apiUrl}/api/interview/terminate-interview`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Interview terminated successfully.");
+        } else {
+          console.log(
+            `Failed to terminate interview. Status: ${response.status}`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
     setIsModalOpen(false);
     // Add animation for navigation
     document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
     setTimeout(() => {
-      router.push("/");
+      router.replace("/");
     }, 500);
   };
 
@@ -379,7 +403,7 @@ const InterviewPage = () => {
         {/* Enhanced Completion Modal */}
         {isCompletionModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate__animated animate__fadeIn">
-            <div className="bg-dimWhite rounded-lg p-8 max-w-md mx-auto text-center shadow-2xl animate__animated animate__zoomIn">
+            <div className="bg-white rounded-lg p-8 max-w-md mx-auto text-center shadow-2xl animate__animated animate__zoomIn">
               <div className="text-5xl mb-4 animate__animated animate__bounceIn animate__delay-1s">🎉</div>
               <h2 className="text-2xl font-bold mb-4 text-blue-600">Interview Completed!</h2>
               <p className="mb-6">
