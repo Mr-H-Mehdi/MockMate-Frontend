@@ -5,8 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from "next/image";
 import { ai, logo } from '@/public';
+import { useRouter } from 'next/navigation'; // Import useRouter for redirection
 
-const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL; // Make sure this is correctly set in your .env.local file
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,12 +15,15 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Authentication state
+  const [authError, setAuthError] = useState<string | null>(null); // State for authentication errors
+  const router = useRouter();
 
-  // Background particle animation
+  // Background particle animation (remains the same)
   const [particles, setParticles] = useState<{ x: number; y: number; size: number; color: string; speed: number }[]>([]);
 
   useEffect(() => {
-    // Generate random particles for the background
+    // Generate random particles for the background (remains the same)
     const newParticles = Array.from({ length: 50 }, () => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -29,9 +33,9 @@ const Auth = () => {
     }));
     setParticles(newParticles);
 
-    // Animate particles
+    // Animate particles (remains the same)
     const interval = setInterval(() => {
-      setParticles(prev => 
+      setParticles(prev =>
         prev.map(particle => ({
           ...particle,
           y: (particle.y + particle.speed) % 100
@@ -42,86 +46,120 @@ const Auth = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      // Validate token with backend
+      fetch(`${apiUrl}/api/authenticate/validate_token_user`, { // Updated endpoint: /api/authenticate/validate_token_user
+        headers: {
+          "Authorization": token
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            setIsAuthenticated(true);
+            console.log("Token validated with backend. User authenticated.");
+            router.push('/dashboard'); // Redirect to dashboard after successful validation
+          } else {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            setIsAuthenticated(false);
+            console.log("Token validation failed. User not authenticated.");
+            // Optionally redirect to auth page if not already there: router.push('/auth');
+          }
+        })
+        .catch(error => {
+          console.error("Token validation error:", error);
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+        });
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    setAuthError(null); // Clear any previous error messages
 
-    if (isLogin){
-      const requestBody = {
-        email: email,
-        password: password
-      };
-      
-      console.log("Request body:", requestBody); // Check what data is being sent
-      
-      fetch(`${apiUrl}/api/authenticate/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
-      })
-      .then((response) => {
-          console.log("Sign in initiated. response: ", response.data);
-          if (response.ok) {
-            console.log("Sign in successful. response: ", response);
-          } else {
-            console.log(`Failed to sign in. Status: ${response.status}`);
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-      
-        
-      // Reset loading state
-      setIsLoading(false);
-      return;
-    }
-    const requestBody = {
-      name: name,
-      email: email,
-      password: password
-    };
-    
-    console.log("Request body:", requestBody); // Check what data is being sent
-    
-    fetch(`${apiUrl}/api/authenticate/signup`, {
+    // Simulate API call (you can remove this in production)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const authEndpoint = isLogin ? `${apiUrl}/api/authenticate/login` : `${apiUrl}/api/authenticate/signup`; // Updated endpoints
+    const requestBody = isLogin ? { email, password } : { name, email, password };
+
+    fetch(authEndpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
     })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Sign up successful.");
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Authentication failed! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(data);
+        if (data.status === "success") {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setIsAuthenticated(true);
+          console.log("Authentication successful, token stored.");
+          router.push('/dashboard'); // Redirect to dashboard after successful auth
         } else {
-          console.log(`Failed to sign up. Status: ${response.status}`);
+          console.error("Authentication failed:", data.message);
+          setAuthError(data.message || "Authentication failed."); // Display backend message or default
         }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-    
-      
-    // Reset loading state
-    setIsLoading(false);
+      .catch(error => {
+        console.error("Authentication Error:", error);
+        setAuthError("Failed to connect to authentication server."); // Generic error for connection issues
+      })
+      .finally(() => setIsLoading(false));
   };
+
+  const handleLogout = () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.log("No token found to logout.");
+      return;
+    }
+
+    fetch(`${apiUrl}/api/authenticate/logout`, { // Updated endpoint: /api/authenticate/logout
+      method: "POST",
+      headers: {
+        "Authorization": token
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          console.error("Logout failed:", response.statusText);
+        }
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        console.log("Logout successful.");
+        router.push('/auth'); // Redirect to auth page after logout
+      })
+      .catch(error => {
+        console.error("Logout error:", error);
+        alert("Logout failed. Please try again."); // User feedback on logout failure
+      });
+  };
+
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
+    setAuthError(null); // Clear error message when toggling auth mode
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-black to-cyan-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Floating particles background */}
+      {/* Floating particles background (remains the same) */}
       {particles.map((particle, index) => (
-        <div 
+        <div
           key={index}
           className="absolute rounded-full opacity-30"
           style={{
@@ -133,38 +171,35 @@ const Auth = () => {
           }}
         />
       ))}
-      
 
-      {/* Glowing orb */}
+      {/* Glowing orb (remains the same) */}
       <div className="absolute w-64 h-64 rounded-full bg-cyan-900  filter blur-3xl opacity-20 animate-pulse" />
-      
+
       <Image src={logo} alt="hoobank" width={60} height={60} className="right-[0%] relative bottom-72" loading="eager" />
       <div className='text-white right-[0%] relative bottom-72 font-bold text-3xl'>MockMate</div>
       <div className='text-white  right-[14%] relative bottom-56 font-semibold text-lg whitespace-nowrap'>Utilize the power of AI for your next venture</div>
-      <Image src={ai} alt="AI Avatar" width={560}  className="top-12 right-72   relative" loading="eager" />
+      <Image src={ai} alt="AI Avatar" width={560} className="top-12 right-72   relative" loading="eager" />
 
-      {/* Glass card */}
-      <motion.div 
+      {/* Glass card (remains the same) */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="relative w-full right-16 max-w-md backdrop-blur-lg bg-black/10 p-8 rounded-2xl shadow-2xl border border-white/40 z-10"
       >
-        {/* Logo placeholder */}
+        {/* Logo placeholder (remains the same) */}
         <div className="flex justify-center mb-6">
-          <motion.div 
+          <motion.div
             whileHover={{ rotate: 10, scale: 1.05 }}
             className="w-20 h-20 rounded-xl bg-gradient-to-r from-black  via-cyan-900 to-black flex items-center justify-center shadow-lg"
           >
-            {/* MockMate logo */}
-        <Image src={logo} alt="hoobank" width={60} height={60} loading="eager" />
-            
-            {/* <span className="text-white text-2xl font-bold">A</span> */}
+            {/* MockMate logo (remains the same) */}
+            <Image src={logo} alt="hoobank" width={60} height={60} loading="eager" />
           </motion.div>
         </div>
-        
-        {/* Title */}
-        <motion.h2 
+
+        {/* Title (remains the same) */}
+        <motion.h2
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -172,13 +207,24 @@ const Auth = () => {
         >
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </motion.h2>
-        
-        {/* Form */}
+
+        {authError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-4 text-red-500 text-center"
+          >
+            {authError}
+          </motion.div>
+        )}
+
+        {/* Form (remains the same) */}
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* Name field (sign up only) */}
+            {/* Name field (sign up only) (remains the same) */}
             {!isLogin && (
-              <motion.div 
+              <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -195,8 +241,8 @@ const Auth = () => {
                 />
               </motion.div>
             )}
-            
-            {/* Email field */}
+
+            {/* Email field (remains the same) */}
             <div>
               <label className="block text-white text-sm font-medium mb-1">Email</label>
               <input
@@ -208,8 +254,8 @@ const Auth = () => {
                 required
               />
             </div>
-            
-            {/* Password field */}
+
+            {/* Password field (remains the same) */}
             <div>
               <label className="block text-white text-sm font-medium mb-1">Password</label>
               <input
@@ -221,13 +267,13 @@ const Auth = () => {
                 required
               />
             </div>
-            
-            {/* Action button */}
+
+            {/* Action button (remains the same) */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-cyan  via-black  to-cyan-900 text-white font-medium rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition border border-cyan-900 mt-6"
+              className="w-full py-3 px-4 bg-gradient-to-r from-cyan  via-black   to-cyan-900 text-white font-medium rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition border border-cyan-900 mt-6"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -242,8 +288,8 @@ const Auth = () => {
                 isLogin ? 'Sign In' : 'Create Account'
               )}
             </motion.button>
-            
-            {/* OAuth options */}
+
+            {/* OAuth options (remains the same) */}
             <div className="relative flex items-center justify-center mt-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10"></div>
@@ -252,9 +298,9 @@ const Auth = () => {
                 <span className="text-sm text-white/60">Or continue with</span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-3 mt-4">
-              {/* Google */}
+              {/* Google (remains the same) */}
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
@@ -267,8 +313,8 @@ const Auth = () => {
                   <span className="text-xs font-bold text-gray-800">G</span>
                 </div>
               </motion.button>
-              
-              {/* GitHub */}
+
+              {/* GitHub (remains the same) */}
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
@@ -281,8 +327,8 @@ const Auth = () => {
                   <span className="text-xs font-bold text-white">f</span>
                 </div>
               </motion.button>
-              
-              {/* Twitter/X */}
+
+              {/* Twitter/X (remains the same) */}
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
@@ -298,20 +344,20 @@ const Auth = () => {
             </div>
           </div>
         </form>
-        
-        {/* Toggle between login and signup */}
+
+        {/* Toggle between login and signup (remains the same) */}
         <div className="text-center mt-6">
-          <button 
+          <button
             onClick={toggleAuthMode}
             className="text-white/80 hover:text-white text-sm underline-offset-2 hover:underline transition"
           >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
+            {isLogin
+              ? "Don't have an account? Sign up"
               : "Already have an account? Sign in"}
           </button>
         </div>
-        
-        {/* Decorative elements */}
+
+        {/* Decorative elements (remains the same) */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/20 rounded-full blur-2xl"></div>
         <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-indigo-600/20 rounded-full blur-3xl"></div>
       </motion.div>

@@ -79,6 +79,18 @@ export default function InterviewResultPage() {
   const [remainingTime, setRemainingTime] = useState<number>(10);
   const router = useRouter();
 
+  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.log("No user data found in localStorage");
+      router.replace('/auth');
+    }
+  }, [router]);
+
   // Function to fetch interview results
   const fetchInterviewResults = useCallback(async (id: string) => {
     try {
@@ -87,7 +99,7 @@ export default function InterviewResultPage() {
       };
 
       console.log("Fetching results for interview ID:", id);
-      
+
       const response = await fetch(`${apiUrl}/api/feedback/get-feedback`, {
         method: "POST",
         headers: {
@@ -98,17 +110,17 @@ export default function InterviewResultPage() {
 
       const data = await response.json();
       console.log("Server Response:", data);
-      
+
       setResult(data);
-      console.log("data is",data.feedback.data);
-      
+      console.log("data is", data.feedback.data);
+
       if (data.status === "pending") {
         // Start countdown for the next polling attempt
         setRemainingTime(60);
       } else {
         setIsLoading(false);
       }
-      
+
       return data;
     } catch (error) {
       console.error("Request failed", error);
@@ -137,7 +149,7 @@ export default function InterviewResultPage() {
       ).matches;
       setDarkMode(savedTheme === "dark" || (!savedTheme && prefersDark));
     }
-    
+
   }, []);
 
   // Effect to fetch results when interview ID is available
@@ -152,13 +164,13 @@ export default function InterviewResultPage() {
   // Countdown timer for polling
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (result?.status === "pending" && remainingTime > 0) {
       timer = setInterval(() => {
         setRemainingTime((prevTime) => prevTime - 1);
       }, 1000);
     }
-    
+
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -179,8 +191,8 @@ export default function InterviewResultPage() {
     localStorage.setItem("theme", newDarkMode ? "dark" : "light");
   };
 
-    const handleManualRefresh = () => {
-      window.location.reload(); // This will reload the current page
+  const handleManualRefresh = () => {
+    window.location.reload(); // This will reload the current page
     // if (interviewId) {
     //   setIsLoading(true);
     //   fetchInterviewResults(interviewId);
@@ -243,17 +255,15 @@ export default function InterviewResultPage() {
   if (result?.status === "pending") {
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${
-          darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-        }`}
+        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+          }`}
       >
         <div className="text-center max-w-md">
           <div
-            className={`animate-spin h-12 w-12 border-4 ${
-              darkMode
-                ? "border-blue-400 border-t-gray-900"
-                : "border-blue-500 border-t-transparent"
-            } rounded-full mx-auto mb-4`}
+            className={`animate-spin h-12 w-12 border-4 ${darkMode
+              ? "border-blue-400 border-t-gray-900"
+              : "border-blue-500 border-t-transparent"
+              } rounded-full mx-auto mb-4`}
           ></div>
           <h2 className="text-xl font-bold mb-2">Interview Results Processing</h2>
           <p className="mb-4">
@@ -266,8 +276,8 @@ export default function InterviewResultPage() {
             </div>
             <Progress value={100 - (remainingTime / 60 * 100)} className="h-2" />
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="flex items-center gap-2"
             onClick={handleManualRefresh}
           >
@@ -283,17 +293,15 @@ export default function InterviewResultPage() {
   if (isLoading) {
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${
-          darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-        }`}
+        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+          }`}
       >
         <div className="text-center">
           <div
-            className={`animate-spin h-12 w-12 border-4 ${
-              darkMode
-                ? "border-blue-400 border-t-gray-900"
-                : "border-blue-500 border-t-transparent"
-            } rounded-full mx-auto mb-4`}
+            className={`animate-spin h-12 w-12 border-4 ${darkMode
+              ? "border-blue-400 border-t-gray-900"
+              : "border-blue-500 border-t-transparent"
+              } rounded-full mx-auto mb-4`}
           ></div>
           <p className="text-lg">Loading interview results...</p>
         </div>
@@ -304,14 +312,13 @@ export default function InterviewResultPage() {
   // Show error state
   if (error || !result || !result.feedback) {
     console.log(result?.feedback);
-    
+
     const errorMessage = error || "Failed to load interview results. Please try again later.";
-    
+
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${
-          darkMode ? "bg-gray-900" : "bg-gray-50"
-        }`}
+        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"
+          }`}
       >
         <Card className="w-full max-w-lg">
           <CardHeader>
@@ -330,7 +337,7 @@ export default function InterviewResultPage() {
 
   // Processing successful results
   var { feedback } = result;
-  console.log("SSSSS",feedback);
+  console.log("SSSSS", feedback);
 
   const interviewDate = new Date(feedback.generation_timestamp);
   const formattedDate = interviewDate.toLocaleDateString("en-US", {
@@ -341,12 +348,11 @@ export default function InterviewResultPage() {
 
   const processingTimeMinutes = (feedback.processing_time_ms / 60000).toFixed(2);
   console.log("feedback", result.feedback);
-  feedback=result.feedback.data;
+  feedback = result.feedback.data;
   return (
     <div
-      className={`min-h-screen ${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-      } transition-colors duration-200 py-8 px-4 sm:px-6 lg:px-8`}
+      className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        } transition-colors duration-200 py-8 px-4 sm:px-6 lg:px-8`}
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -408,18 +414,16 @@ export default function InterviewResultPage() {
 
         <div
           id="interview-result"
-          className={`space-y-6 ${
-            darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-          }`}
+          className={`space-y-6 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+            }`}
         >
           {/* Header Card */}
           <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
             <CardHeader
-              className={`${
-                darkMode
-                  ? "bg-gradient-to-r from-blue-700 to-indigo-800"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-600"
-              } text-white rounded-t-lg`}
+              className={`${darkMode
+                ? "bg-gradient-to-r from-blue-700 to-indigo-800"
+                : "bg-gradient-to-r from-blue-500 to-indigo-600"
+                } text-white rounded-t-lg`}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
@@ -460,9 +464,8 @@ export default function InterviewResultPage() {
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2 mt-4">
                   <h3
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
+                    className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
                   >
                     Overall Score
                   </h3>
@@ -481,55 +484,49 @@ export default function InterviewResultPage() {
                             ? "#b91c1c"
                             : "#fca5a5"
                           : feedback.interview_score < 70
-                          ? darkMode
-                            ? "#ca8a04"
-                            : "#fcd34d"
-                          : darkMode
-                          ? "#16a34a"
-                          : "#86efac",
+                            ? darkMode
+                              ? "#ca8a04"
+                              : "#fcd34d"
+                            : darkMode
+                              ? "#16a34a"
+                              : "#86efac",
                     }}
                   />
                 </div>
               </div>
 
               <div
-                className={`text-sm ${
-                  darkMode ? "text-gray-300" : "text-gray-700"
-                }`}
+                className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
               >
                 {feedback.overview}
               </div>
 
               <div
-                className={`mt-4 pt-4 border-t ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`mt-4 pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <h3
-                  className={`font-medium ${
-                    darkMode ? "text-white" : "text-gray-900"
-                  } mb-2`}
+                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"
+                    } mb-2`}
                 >
                   Hiring Recommendation
                 </h3>
                 <div className="flex items-start gap-2">
                   {feedback.interview_score < 60 ? (
                     <AlertTriangle
-                      className={`h-5 w-5 ${
-                        darkMode ? "text-red-400" : "text-red-500"
-                      } flex-shrink-0 mt-0.5`}
+                      className={`h-5 w-5 ${darkMode ? "text-red-400" : "text-red-500"
+                        } flex-shrink-0 mt-0.5`}
                     />
                   ) : (
                     <CheckCircle
-                      className={`h-5 w-5 ${
-                        darkMode ? "text-green-400" : "text-green-500"
-                      } flex-shrink-0 mt-0.5`}
+                      className={`h-5 w-5 ${darkMode ? "text-green-400" : "text-green-500"
+                        } flex-shrink-0 mt-0.5`}
                     />
                   )}
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     {feedback.hiring_recommendation}
                   </p>
@@ -543,9 +540,8 @@ export default function InterviewResultPage() {
             <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle
-                  className={`${
-                    darkMode ? "text-green-400" : "text-green-600"
-                  } flex items-center gap-2`}
+                  className={`${darkMode ? "text-green-400" : "text-green-600"
+                    } flex items-center gap-2`}
                 >
                   <CheckCircle className="h-5 w-5" />
                   Strengths
@@ -556,16 +552,14 @@ export default function InterviewResultPage() {
                   {feedback.strengths.map((strength, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span
-                        className={`${
-                          darkMode ? "text-green-400" : "text-green-600"
-                        } font-medium text-lg leading-none`}
+                        className={`${darkMode ? "text-green-400" : "text-green-600"
+                          } font-medium text-lg leading-none`}
                       >
                         •
                       </span>
                       <span
-                        className={`text-sm ${
-                          darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                          }`}
                       >
                         {strength}
                       </span>
@@ -578,9 +572,8 @@ export default function InterviewResultPage() {
             <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle
-                  className={`${
-                    darkMode ? "text-red-400" : "text-red-600"
-                  } flex items-center gap-2`}
+                  className={`${darkMode ? "text-red-400" : "text-red-600"
+                    } flex items-center gap-2`}
                 >
                   <AlertTriangle className="h-5 w-5" />
                   Areas for Improvement
@@ -591,16 +584,14 @@ export default function InterviewResultPage() {
                   {feedback.weaknesses.map((weakness, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span
-                        className={`${
-                          darkMode ? "text-red-400" : "text-red-600"
-                        } font-medium text-lg leading-none`}
+                        className={`${darkMode ? "text-red-400" : "text-red-600"
+                          } font-medium text-lg leading-none`}
                       >
                         •
                       </span>
                       <span
-                        className={`text-sm ${
-                          darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                          }`}
                       >
                         {weakness}
                       </span>
@@ -622,64 +613,56 @@ export default function InterviewResultPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
                 <div>
                   <h3
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } mb-1`}
+                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
+                      } mb-1`}
                   >
                     Approach
                   </h3>
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     {feedback.coding_evaluation.approach}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } mb-1`}
+                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
+                      } mb-1`}
                   >
                     Code Quality
                   </h3>
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     {feedback.coding_evaluation.code_quality}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } mb-1`}
+                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
+                      } mb-1`}
                   >
                     Correctness
                   </h3>
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     {feedback.coding_evaluation.correctness}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } mb-1`}
+                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
+                      } mb-1`}
                   >
                     Efficiency
                   </h3>
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                   >
                     {feedback.coding_evaluation.efficiency}
                   </p>
@@ -687,21 +670,18 @@ export default function InterviewResultPage() {
               </div>
 
               <div
-                className={`mt-4 pt-4 border-t ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`mt-4 pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <h3
-                  className={`text-sm font-medium ${
-                    darkMode ? "text-white" : "text-gray-900"
-                  } mb-1`}
+                  className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
                 >
                   Suggestions
                 </h3>
                 <p
-                  className={`text-sm ${
-                    darkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
+                  className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                 >
                   {feedback.coding_evaluation.suggestions}
                 </p>
@@ -747,14 +727,12 @@ export default function InterviewResultPage() {
                 {feedback.recommendations.map((recommendation, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <BarChart2
-                      className={`h-4 w-4 ${
-                        darkMode ? "text-blue-400" : "text-blue-500"
-                      } flex-shrink-0 mt-0.5`}
+                      className={`h-4 w-4 ${darkMode ? "text-blue-400" : "text-blue-500"
+                        } flex-shrink-0 mt-0.5`}
                     />
                     <span
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       {recommendation}
                     </span>
@@ -776,28 +754,24 @@ export default function InterviewResultPage() {
                 {feedback.questions.map((question, index) => (
                   <div
                     key={index}
-                    className={`border rounded-lg p-4 shadow-sm ${
-                      darkMode
-                        ? "border-gray-700 bg-gray-800/50"
-                        : "border-gray-100 bg-white"
-                    }`}
+                    className={`border rounded-lg p-4 shadow-sm ${darkMode
+                      ? "border-gray-700 bg-gray-800/50"
+                      : "border-gray-100 bg-white"
+                      }`}
                   >
                     <h3
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-900"
-                      } mb-2`}
+                      className={`font-medium ${darkMode ? "text-white" : "text-gray-900"
+                        } mb-2`}
                     >
                       {question.original_question}
                     </h3>
                     <div
-                      className={`pl-4 border-l-2 ${
-                        darkMode ? "border-gray-700" : "border-gray-200"
-                      } mb-3`}
+                      className={`pl-4 border-l-2 ${darkMode ? "border-gray-700" : "border-gray-200"
+                        } mb-3`}
                     >
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-700"
-                        } italic`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-700"
+                          } italic`}
                       >
                         "{question.user_answer}"
                       </p>
@@ -805,9 +779,8 @@ export default function InterviewResultPage() {
 
                     <div className="mb-4">
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-blue-400" : "text-blue-600"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-blue-400" : "text-blue-600"
+                          }`}
                       >
                         <span className="font-bold"> Remarks:</span> {question.feedback}
                       </p>
@@ -841,9 +814,8 @@ export default function InterviewResultPage() {
 
           {/* Footer Info */}
           <div
-            className={`text-center text-xs ${
-              darkMode ? "text-gray-500" : "text-gray-500"
-            } mt-8`}
+            className={`text-center text-xs ${darkMode ? "text-gray-500" : "text-gray-500"
+              } mt-8`}
           >
             <p>Interview conducted on {formattedDate}</p>
             <p>Processing time: {processingTimeMinutes} minutes</p>
@@ -890,14 +862,12 @@ function ScoreCard({
 
   return (
     <div
-      className={`rounded p-2 text-center ${
-        darkMode ? "bg-gray-700" : "bg-gray-50"
-      }`}
+      className={`rounded p-2 text-center ${darkMode ? "bg-gray-700" : "bg-gray-50"
+        }`}
     >
       <div
-        className={`text-xs ${
-          darkMode ? "text-gray-400" : "text-gray-500"
-        } mb-1`}
+        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"
+          } mb-1`}
       >
         {title}
       </div>

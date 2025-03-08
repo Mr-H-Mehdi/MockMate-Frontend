@@ -80,12 +80,24 @@ const InterviewPage = () => {
   // Use a ref to track if recording was discarded
   const isDiscardedRef = useRef(false);
 
+  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.log("No user data found in localStorage");
+      router.replace('/auth');
+    }
+  }, [router]);
+
   useEffect(() => {
     // Set page as loaded after a short delay for animations
     const timer = setTimeout(() => {
       setPageLoaded(true);
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -177,7 +189,7 @@ const InterviewPage = () => {
     const requestBody = {
       interview_id: interviewId,
     };
-    
+
 
     fetch(`${apiUrl}/api/interview/terminate-interview`, {
       method: "DELETE",
@@ -366,15 +378,15 @@ const InterviewPage = () => {
     setAudioQueue([...audioQueue, newAudio]); // Add new audio to queue
   };
 
-  const displayQuestionNo = parseInt(question_no!) <= parseInt(total_questions!) 
-  ? question_no 
-  : total_questions;
+  const displayQuestionNo = parseInt(question_no!) <= parseInt(total_questions!)
+    ? question_no
+    : total_questions;
 
   return (
     <>
       {/* Add animation styles */}
       <style jsx global>{animationStyles}</style>
-      
+
       <main className={`h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <Sidebar
           question={question || "Loading question..."}
@@ -399,7 +411,7 @@ const InterviewPage = () => {
           onClose={() => setIsModalOpen(false)}
           onTerminate={handleTerminateInterview}
         />
-        
+
         {/* Enhanced Completion Modal */}
         {isCompletionModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate__animated animate__fadeIn">
@@ -407,15 +419,13 @@ const InterviewPage = () => {
               <div className="text-5xl mb-4 animate__animated animate__bounceIn animate__delay-1s">🎉</div>
               <h2 className="text-2xl font-bold mb-4 text-blue-600">Interview Completed!</h2>
               <p className="mb-6">
-                Congratulations! You've completed the voice-based portion of the
-                interview. Now it's time to move on to the coding assessment.
+                This concludes the voice interview. Let's proceed to the coding assessment.
               </p>
               <button
-                className={`px-6 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${
-                  !isIntervieweeDisabled
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                } animate__animated animate__pulse animate__infinite animate__slow`}
+                className={`px-6 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${!isIntervieweeDisabled
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                  } animate__animated animate__pulse animate__infinite animate__slow`}
                 onClick={handleProceedToCoding}
                 disabled={isIntervieweeDisabled}
               >

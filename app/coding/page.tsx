@@ -33,6 +33,18 @@ const CodingPage = () => {
     },
   ]);
 
+  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.log("No user data found in localStorage");
+      router.replace('/auth');
+    }
+  }, [router]);
+
   useEffect(() => {
     // Use a ref to track if the API request has already been made
     if (apiRequestMadeRef.current) {
@@ -153,7 +165,7 @@ const CodingPage = () => {
     const requestBody = {
       interview_id: interviewId,
     };
-    
+
 
     fetch(`${apiUrl}/api/interview/terminate-interview`, {
       method: "DELETE",
@@ -232,8 +244,7 @@ const CodingPage = () => {
 
     // Show a simple alert
     alert(
-      `${
-        language.charAt(0).toUpperCase() + language.slice(1)
+      `${language.charAt(0).toUpperCase() + language.slice(1)
       } solution submitted successfully!`
     );
 
@@ -254,7 +265,7 @@ const CodingPage = () => {
         question_statement="Coding Problem"
         shouldShowReplay={false}
         onTerminate={() => setIsModalOpen(true)}
-        onReplay={() => {}} // No replay functionality needed in coding page
+        onReplay={() => { }} // No replay functionality needed in coding page
         isReplayEnabled={false}
       />
 
