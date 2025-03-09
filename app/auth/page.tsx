@@ -99,7 +99,7 @@ const Auth = () => {
     })
       .then((response) => {
         if (response.ok) {
-          console.log("Sign up successful.");
+          console.log("Sign up successful.response: ", response);
         } else {
           console.log(`Failed to sign up. Status: ${response.status}`);
         }
