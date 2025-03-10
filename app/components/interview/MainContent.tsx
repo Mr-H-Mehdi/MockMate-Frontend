@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 const MainContent = ({
   interviewData,
   isIntervieweeDisabled,
+  shouldAnimate,
   isRecording,
   elapsedTime,
   onStartRecording,
@@ -12,6 +13,7 @@ const MainContent = ({
 }: {
   interviewData: any;
   isIntervieweeDisabled: boolean;
+  shouldAnimate: boolean;
   isRecording: boolean;
   elapsedTime: number;
   onStartRecording: () => void;
@@ -31,7 +33,7 @@ const MainContent = ({
   }, []);
 
   useEffect(() => {
-    if (isIntervieweeDisabled) {
+    if (shouldAnimate) {
       setAnimateVisualizer(true);
     } else {
       // Add delay before stopping animation to make transition smoother

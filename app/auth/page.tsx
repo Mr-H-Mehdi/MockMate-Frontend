@@ -1,10 +1,10 @@
-// authpage.tsx
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from "next/image";
 import { ai, logo } from '@/public';
+import { useRouter } from 'next/navigation';
+import 'animate.css'; // Using the animate.css library
 
 const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -14,6 +14,9 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const router = useRouter();
 
   // Background particle animation
   const [particles, setParticles] = useState<{ x: number; y: number; size: number; color: string; speed: number }[]>([]);
@@ -31,7 +34,7 @@ const Auth = () => {
 
     // Animate particles
     const interval = setInterval(() => {
-      setParticles(prev => 
+      setParticles(prev =>
         prev.map(particle => ({
           ...particle,
           y: (particle.y + particle.speed) % 100
@@ -42,86 +45,116 @@ const Auth = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      fetch(`${apiUrl}/api/authenticate/validate_token_user`, {
+        headers: {
+          "Authorization": token
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            setIsAuthenticated(true);
+            console.log("Token validated with backend. User authenticated.");
+            router.push('/dashboard');
+          } else {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            setIsAuthenticated(false);
+            console.log("Token validation failed. User not authenticated.");
+          }
+        })
+        .catch(error => {
+          console.error("Token validation error:", error);
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+        });
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    setAuthError(null);
 
-    if (isLogin){
-      const requestBody = {
-        email: email,
-        password: password
-      };
-      
-      console.log("Request body:", requestBody); // Check what data is being sent
-      
-      fetch(`${apiUrl}/api/authenticate/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
-      })
-      .then((response) => {
-          console.log("Sign in initiated. response: ", response.data);
-          if (response.ok) {
-            console.log("Sign in successful. response: ", response);
-          } else {
-            console.log(`Failed to sign in. Status: ${response.status}`);
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-      
-        
-      // Reset loading state
-      setIsLoading(false);
-      return;
-    }
-    const requestBody = {
-      name: name,
-      email: email,
-      password: password
-    };
-    
-    console.log("Request body:", requestBody); // Check what data is being sent
-    
-    fetch(`${apiUrl}/api/authenticate/signup`, {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const authEndpoint = isLogin ? `${apiUrl}/api/authenticate/login` : `${apiUrl}/api/authenticate/signup`;
+    const requestBody = isLogin ? { email, password } : { name, email, password };
+
+    fetch(authEndpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody), // Ensure requestBody is correctly stringified
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
     })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Sign up successful.response: ", response);
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Authentication failed! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(data);
+        if (data.status === "success") {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setIsAuthenticated(true);
+          console.log("Authentication successful, token stored.");
+          router.push('/dashboard');
         } else {
-          console.log(`Failed to sign up. Status: ${response.status}`);
+          console.error("Authentication failed:", data.message);
+          setAuthError(data.message || "Authentication failed.");
         }
       })
-      .catch((error) => {
-        console.error("Error:", error);
+      .catch(error => {
+        console.error("Authentication Error:", error);
+        setAuthError("Failed to connect to authentication server.");
+      })
+      .finally(() => setIsLoading(false));
+  };
+
+  const handleLogout = () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.log("No token found to logout.");
+      return;
+    }
+
+    fetch(`${apiUrl}/api/authenticate/logout`, {
+      method: "POST",
+      headers: {
+        "Authorization": token
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          console.error("Logout failed:", response.statusText);
+        }
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        console.log("Logout successful.");
+        router.push('/auth');
+      })
+      .catch(error => {
+        console.error("Logout error:", error);
+        alert("Logout failed. Please try again.");
       });
-    
-      
-    // Reset loading state
-    setIsLoading(false);
   };
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
+    setAuthError(null);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-black to-cyan-900 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Floating particles background */}
       {particles.map((particle, index) => (
-        <div 
+        <div
           key={index}
           className="absolute rounded-full opacity-30"
           style={{
@@ -133,52 +166,55 @@ const Auth = () => {
           }}
         />
       ))}
-      
 
       {/* Glowing orb */}
-      <div className="absolute w-64 h-64 rounded-full bg-cyan-900  filter blur-3xl opacity-20 animate-pulse" />
-      
-      <Image src={logo} alt="hoobank" width={60} height={60} className="right-[0%] relative bottom-72" loading="eager" />
-      <div className='text-white right-[0%] relative bottom-72 font-bold text-3xl'>MockMate</div>
-      <div className='text-white  right-[14%] relative bottom-56 font-semibold text-lg whitespace-nowrap'>Utilize the power of AI for your next venture</div>
-      <Image src={ai} alt="AI Avatar" width={560}  className="top-12 right-72   relative" loading="eager" />
+      <div className="absolute w-64 h-64 rounded-full bg-cyan-900 filter blur-3xl opacity-20 animate-pulse" />
 
-      {/* Glass card */}
-      <motion.div 
+      {/* Left-aligned logo and text */}
+      <div className="absolute top-6 left-6 md:top-12 md:left-12 flex items-center z-20 animate__animated animate__fadeInLeft">
+        <Image src={logo} alt="MockMate" width={50} height={50} className="mr-4" loading="eager" />
+        <div>
+          <h1 className="text-white font-bold text-2xl md:text-3xl">MockMate</h1>
+          <p className="text-white font-medium text-sm md:text-base">Utilize the power of AI for your next venture</p>
+        </div>
+      </div>
+
+      {/* AI Image, positioned large and in the same place */}
+      <div className="absolute top-1/4 right-2/4  transform -translate-y-1/4 z-10 animate__animated animate__fadeInLeft animate__delay-1s">
+        <Image 
+          src={ai} 
+          alt="AI Avatar" 
+          width={600} 
+          height={600}
+          className="max-w-none md:max-w-3xl"
+          loading="eager" 
+        />
+      </div>
+
+      {/* Auth form */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative w-full right-16 max-w-md backdrop-blur-lg bg-black/10 p-8 rounded-2xl shadow-2xl border border-white/40 z-10"
+        className="relative w-full max-w-md backdrop-blur-lg bg-black/10 p-6 sm:p-8 rounded-2xl shadow-2xl border border-white/40 z-20 ml-auto mr-12 lg:mr-24 animate__animated animate__zoomIn"
       >
-        {/* Logo placeholder */}
-        <div className="flex justify-center mb-6">
-          <motion.div 
-            whileHover={{ rotate: 10, scale: 1.05 }}
-            className="w-20 h-20 rounded-xl bg-gradient-to-r from-black  via-cyan-900 to-black flex items-center justify-center shadow-lg"
-          >
-            {/* MockMate logo */}
-        <Image src={logo} alt="hoobank" width={60} height={60} loading="eager" />
-            
-            {/* <span className="text-white text-2xl font-bold">A</span> */}
-          </motion.div>
-        </div>
-        
-        {/* Title */}
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-2xl font-bold text-center text-white mb-6"
-        >
+        {/* Title with animation */}
+        <h2 className="text-2xl font-bold text-center text-white mb-6 animate__animated animate__fadeIn animate__delay-0.5s">
           {isLogin ? 'Welcome Back' : 'Create Account'}
-        </motion.h2>
-        
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
+        </h2>
+
+        {authError && (
+          <div className="mb-4 text-red-500 text-center animate__animated animate__shakeX">
+            {authError}
+          </div>
+        )}
+
+        {/* Form with animated elements */}
+        <form onSubmit={handleSubmit} className="animate__animated animate__fadeIn animate__delay-0.5s">
           <div className="space-y-4">
             {/* Name field (sign up only) */}
             {!isLogin && (
-              <motion.div 
+              <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -195,7 +231,7 @@ const Auth = () => {
                 />
               </motion.div>
             )}
-            
+
             {/* Email field */}
             <div>
               <label className="block text-white text-sm font-medium mb-1">Email</label>
@@ -208,7 +244,7 @@ const Auth = () => {
                 required
               />
             </div>
-            
+
             {/* Password field */}
             <div>
               <label className="block text-white text-sm font-medium mb-1">Password</label>
@@ -221,13 +257,11 @@ const Auth = () => {
                 required
               />
             </div>
-            
-            {/* Action button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+
+            {/* Action button with animation */}
+            <button
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-cyan  via-black  to-cyan-900 text-white font-medium rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition border border-cyan-900 mt-6"
+              className="w-full py-3 px-4 bg-gradient-to-r from-cyan-700 via-black to-cyan-900 text-white font-medium rounded-lg shadow-lg focus:outline-none transition border border-cyan-900 mt-6 hover:scale-105 animate__animated animate__pulse animate__infinite animate__slower"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -241,8 +275,8 @@ const Auth = () => {
               ) : (
                 isLogin ? 'Sign In' : 'Create Account'
               )}
-            </motion.button>
-            
+            </button>
+
             {/* OAuth options */}
             <div className="relative flex items-center justify-center mt-6">
               <div className="absolute inset-0 flex items-center">
@@ -252,69 +286,71 @@ const Auth = () => {
                 <span className="text-sm text-white/60">Or continue with</span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-3 mt-4">
-              {/* Google */}
-              <motion.button
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
+              {/* OAuth buttons with animations */}
+              <button
                 type="button"
-                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition animate__animated animate__fadeInUp animate__delay-0.5s"
               >
                 <span className="sr-only">Google</span>
                 <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                  {/* Replace with actual Google icon */}
                   <span className="text-xs font-bold text-gray-800">G</span>
                 </div>
-              </motion.button>
-              
-              {/* GitHub */}
-              <motion.button
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
+              </button>
+
+              <button
                 type="button"
-                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition animate__animated animate__fadeInUp animate__delay-1s"
               >
                 <span className="sr-only">GitHub</span>
                 <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
-                  {/* Replace with actual GitHub icon */}
                   <span className="text-xs font-bold text-white">f</span>
                 </div>
-              </motion.button>
-              
-              {/* Twitter/X */}
-              <motion.button
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
+              </button>
+
+              <button
                 type="button"
-                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+                className="flex items-center justify-center py-2 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition animate__animated animate__fadeInUp animate__delay-2s"
               >
                 <span className="sr-only">Twitter/X</span>
                 <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
-                  {/* Replace with actual Twitter/X icon */}
                   <span className="text-xs font-bold text-white">X</span>
                 </div>
-              </motion.button>
+              </button>
             </div>
           </div>
         </form>
-        
-        {/* Toggle between login and signup */}
-        <div className="text-center mt-6">
-          <button 
+
+        {/* Toggle between login and signup with animation */}
+        <div className="text-center mt-6 animate__animated animate__fadeIn animate__delay-1s">
+          <button
             onClick={toggleAuthMode}
             className="text-white/80 hover:text-white text-sm underline-offset-2 hover:underline transition"
           >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
+            {isLogin
+              ? "Don't have an account? Sign up"
               : "Already have an account? Sign in"}
           </button>
         </div>
-        
+
         {/* Decorative elements */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/20 rounded-full blur-2xl"></div>
         <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-indigo-600/20 rounded-full blur-3xl"></div>
       </motion.div>
+      
+      {/* Mobile responsiveness adjustments */}
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .max-w-none {
+            max-width: 80vw;
+            position: absolute;
+            right: -10vw;
+            opacity: 0.7;
+            z-index: 5;
+          }
+        }
+      `}</style>
     </div>
   );
 };

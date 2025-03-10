@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "../components/home";
 import CVDropZone from "../components/resume-upload/CVDropZone";
 import CVForm from "../components/resume-upload/CVForm";
@@ -18,6 +18,20 @@ export default function Home() {
   } | null>(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
   const [totalQuestions, setTotalQuestions] = useState(5); // Add state for number of questions
+  const [role, setRole] = useState("Junior Frontend Developer"); // Add state for number of questions
+
+  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null); // State to hold user data
+  const router = useRouter();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.log("No user data found in localStorage");
+      router.replace('/auth');
+    }
+  }, [router]);
 
   const handleFileDrop = (file: File) => {
     setFile(file);
@@ -36,16 +50,14 @@ export default function Home() {
     // console.log(content);
     // console.log("content name");
     // console.log(content.name);
-    
+
     setFormData({
       name: data.data.name || "",
-      role: data.data.qualification || "",
+      role: role,
       projects: data.data.projects || "",
       skills: data.data.skills || "",
     });
   };
-
-  const router = useRouter();
 
   const navigateToInterview = () => {
     router.push("/interview");
@@ -59,9 +71,9 @@ export default function Home() {
     }
 
     const dataToSend = {
-      user_id:'67c2348e6639afbc138bfc8c',
+      user_id: user?.id,
       name: formData.name,
-      interview_role: formData.role,
+      interview_role: role,
       skills: formData.skills,
       projects: formData.projects,
       total_questions: totalQuestions, // Include total_questions in data
@@ -71,7 +83,7 @@ export default function Home() {
 
     try {
       console.log(JSON.stringify(dataToSend));
-      
+
       const response = await fetch(
         `${apiUrl}/api/interview/start-interview`,
         {
@@ -89,14 +101,14 @@ export default function Home() {
 
       const result = await response.json();
 
-      const { interview_id, audio_file_base64, question, question_no, total_questions  } = result.message;
+      const { interview_id, audio_file_base64, question, question_no, total_questions } = result.message;
       // console.log("result:", result);
       // console.log("result     q:", question);
       // console.log("result     q    no:", question_no);
       // console.log("result     q    total:", total_questions);
 
       if (audio_file_base64) {
-        
+
         localStorage.setItem("interview_id", interview_id);
         localStorage.setItem("audio_file_base64", audio_file_base64);
         localStorage.setItem("question", question);
@@ -130,6 +142,8 @@ export default function Home() {
             setFormData={setFormData}
             setIsFormComplete={setIsFormComplete}
             totalQuestions={totalQuestions} // Pass totalQuestions to CVForm
+            role={role}
+            setRole={setRole}
             setTotalQuestions={setTotalQuestions} // Pass setTotalQuestions to update the state
           />
           <StartButton

@@ -18,8 +18,8 @@ const Hero = () => {
         <div className="flex flex-row items-center py-[6px] px-4 bg-discount-gradient rounded-[10px] mb-2">
           {/* <Image src={discount} alt="discount" width={32} height={32} priority={true} /> */}
           <p className="paragraph ml-2">
-            <span className="text-white">Check Out </span> New {" "}
-            <span className="text-white">Web Dev </span>Mock
+            <span className="text-white">Check Out </span> Our New {" "}
+            <span className="text-gradient1 ">Fullstack Web Developer </span>Mock
           </p>
         </div>
 

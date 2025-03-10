@@ -31,6 +31,22 @@
   background-clip: text;
 }
 
+.text-gradient1 {
+  font-weight: 700;
+  background: radial-gradient(
+    64.18% 94.18% at 11.16% 65.69%,
+    #5ce1e6 10.89%,
+    #bef3f5 17.23%,
+    #9dedf0 42.04%,
+    #7de7eb 55.12%,
+    #529a9c 71.54%,
+    #7fdfee 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .bg-blue-gradient {
   background: linear-gradient(
     157.81deg,

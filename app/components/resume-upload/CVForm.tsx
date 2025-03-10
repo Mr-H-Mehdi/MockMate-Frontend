@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const CVForm = ({
   initialData,
@@ -8,43 +8,62 @@ const CVForm = ({
   setIsFormComplete,
   totalQuestions,
   setTotalQuestions,
+  role,
+  setRole,
 }: {
   initialData?: any;
   setFormData: (data: any) => void;
   setIsFormComplete: (status: boolean) => void;
   totalQuestions: number;
+  role: string;
   setTotalQuestions: (value: number) => void;
+  setRole: (value: string) => void;
 }) => {
   const [localFormData, setLocalFormData] = useState({
-    name: '',
-    role: '',
-    projects: '',
-    skills: '',
+    name: "",
+    role: "Junior Frontend Developer",
+    projects: "",
+    skills: "",
   });
-  
+
   // Flag to track if initialData has been processed
   const [initialDataProcessed, setInitialDataProcessed] = useState(false);
 
   const cleanSkills = (skillsData: string | string[]): string => {
     if (Array.isArray(skillsData)) {
-      return skillsData.join(', ');
+      return skillsData.join(", ");
     }
-    const splitSkills = skillsData.split('\n').filter(skill => {
-      return !skill.toLowerCase().includes('education') && !skill.toLowerCase().includes('university');
+    const splitSkills = skillsData.split("\n").filter((skill) => {
+      return (
+        !skill.toLowerCase().includes("education") &&
+        !skill.toLowerCase().includes("university")
+      );
     });
-    return splitSkills.join(', ');
+    return splitSkills.join(", ");
   };
 
   // Only process initialData once when it becomes available
   useEffect(() => {
     if (initialData && !initialDataProcessed) {
       const processedData = {
-        name: initialData.name !== 'Name not found' ? initialData.name : '',
-        role: initialData.qualification && initialData.qualification !== 'Qualification not found' ? initialData.qualification : '',
-        projects: initialData.projects !== 'Projects not found' ? (Array.isArray(initialData.projects) ? initialData.projects.join(', ') : initialData.projects) : '',
-        skills: initialData.skills !== 'Skills not found' ? cleanSkills(initialData.skills) : '',
+        name: initialData.name !== "Name not found" ? initialData.name : "",
+        role:
+          initialData.qualification &&
+          initialData.qualification !== "Qualification not found"
+            ? initialData.qualification
+            : "",
+        projects:
+          initialData.projects !== "Projects not found"
+            ? Array.isArray(initialData.projects)
+              ? initialData.projects.join(", ")
+              : initialData.projects
+            : "",
+        skills:
+          initialData.skills !== "Skills not found"
+            ? cleanSkills(initialData.skills)
+            : "",
       };
-      
+
       setLocalFormData(processedData);
       setFormData(processedData);
       setInitialDataProcessed(true);
@@ -53,29 +72,34 @@ const CVForm = ({
 
   // Check form completeness when local data changes
   useEffect(() => {
-    const isComplete = 
-      localFormData.name !== '' &&
-      localFormData.role !== '' &&
-      localFormData.projects !== '' &&
-      localFormData.skills !== '';
-    
+    const isComplete =
+      localFormData.name !== "" &&
+      localFormData.role !== "" &&
+      localFormData.projects !== "" &&
+      localFormData.skills !== "";
+
     setIsFormComplete(isComplete);
   }, [localFormData, setIsFormComplete]);
 
   // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     const updatedData = {
       ...localFormData,
-      [name]: value
+      [name]: value,
     };
-    
+
     setLocalFormData(updatedData);
     setFormData(updatedData);
   };
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setTotalQuestions(Number(e.target.value));
+  };
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRole(String(e.target.value));
   };
 
   return (
@@ -102,7 +126,26 @@ const CVForm = ({
           <label htmlFor="role" className="block text-white font-medium mb-2">
             Role <span className="text-red-500">*</span>
           </label>
-          <input
+          <select
+            id="total_questions"
+            name="total_questions"
+            value={role}
+            onChange={handleRoleChange}
+            className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+          >
+            <option value={"Junior Frontend Developer"}>
+              Junior Frontend Developer
+            </option>
+            <option value={"Junior Backend Developer"}>
+              Junior Backend Developer
+            </option>
+            <option value={"Full Stack Developer"}>Full Stack Developer</option>
+            <option value={"Rest API Developer"}>Rest API Developer</option>
+            <option value={"React Native Developer"}>
+              React Native Developer
+            </option>
+          </select>
+          {/* <input
             type="text"
             id="role"
             name="role"
@@ -110,12 +153,15 @@ const CVForm = ({
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
             placeholder="Enter your role"
-          />
+          /> */}
         </div>
 
         {/* Projects Field */}
         <div>
-          <label htmlFor="projects" className="block text-white font-medium mb-2">
+          <label
+            htmlFor="projects"
+            className="block text-white font-medium mb-2"
+          >
             Projects <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -146,8 +192,11 @@ const CVForm = ({
         </div>
 
         {/* Total Questions Dropdown */}
-        <div className='flex '>
-          <label htmlFor="total_questions" className="w-1/3 pt-2.5 grow-1 block text-white font-medium mb-2 relative ">
+        <div className="flex ">
+          <label
+            htmlFor="total_questions"
+            className="w-1/3 pt-2.5 grow-1 block text-white font-medium mb-2 relative "
+          >
             Total Questions <span className="text-red-500">:</span>
           </label>
           <select

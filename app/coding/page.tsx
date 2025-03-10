@@ -5,7 +5,7 @@ import Sidebar from "../components/interview/SideBar";
 import Modal from "../components/interview/Modal";
 import CodingEnvironment from "../components/coding/CodingEnvironment";
 
-const apiUrjjwjjwjjwjsl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
 const CodingPage = () => {
   const router = useRouter();
