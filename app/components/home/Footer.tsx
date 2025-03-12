@@ -3,7 +3,7 @@ import { footerLinks, socialMedia } from "../../constants";
 import Image from "next/image";
 
 const Footer = () => (
-  <section className="flexCenter paddingY flex-col  mx-auto">
+  <section className="flexCenter paddingY flex-col">
     <div className="flexStart md:flex-row flex-col mb-8 w-full">
       <div className="flex-[1] flex flex-col justify-start mr-10">
         <Image

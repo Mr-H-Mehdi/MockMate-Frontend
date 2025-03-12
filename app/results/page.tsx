@@ -50,6 +50,12 @@ interface CodingEvaluation {
   efficiency: string;
   suggestions: string;
 }
+interface interview_metadata {
+  interview_role: string;
+  skills: string;
+  projects: string;
+  interviewee: string;
+  }
 
 interface InterviewResult {
   status: string;
@@ -60,6 +66,7 @@ interface InterviewResult {
     strengths: string[];
     weaknesses: string[];
     recommendations: string[];
+    interview_metadata: interview_metadata;
     interview_score: number;
     keywords_missed: string[];
     hiring_recommendation: string;
@@ -70,65 +77,88 @@ interface InterviewResult {
   from_cache?: boolean;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export default function InterviewResultPage() {
   const [result, setResult] = useState<InterviewResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [interviewId, setInterviewId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
   const [error, setError] = useState<string | null>(null);
-  const [remainingTime, setRemainingTime] = useState<number>(10);
+  const [remainingTime, setRemainingTime] = useState<number>(60);
   const router = useRouter();
 
-  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
-
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const storedUserStr = localStorage.getItem("user");
+    console.log("Raw stored user data:", storedUserStr);
+
+    if (storedUserStr) {
+      try {
+        // Parse the user data
+        const userData = JSON.parse(storedUserStr) as User;
+        console.log("Parsed user data:", userData);
+
+        // Set user state
+        setUser(userData);
+
+        // Fetch interviews for this user
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        router.replace("/auth");
+      }
     } else {
       console.log("No user data found in localStorage");
-      router.replace('/auth');
+      router.replace("/auth");
     }
   }, [router]);
 
   // Function to fetch interview results
-  const fetchInterviewResults = useCallback(async (id: string) => {
-    try {
-      const requestBody = {
-        interview_id: id,
-      };
+  const fetchInterviewResults = useCallback(
+    async (id: string) => {
+      try {
+        const requestBody = {
+          interview_id: id,
+        };
 
-      console.log("Fetching results for interview ID:", id);
+        console.log("Fetching results for interview ID:", id);
 
-      const response = await fetch(`${apiUrl}/api/feedback/get-feedback`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+        const response = await fetch(`${apiUrl}/api/feedback/get-feedback`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
 
-      const data = await response.json();
-      console.log("Server Response:", data);
+        const data = await response.json();
+        console.log("Server Response:", data);
 
-      setResult(data);
-      console.log("data is", data.feedback.data);
+        setResult(data);
+        console.log("data is", data.feedback.data);
 
-      if (data.status === "pending") {
-        // Start countdown for the next polling attempt
-        setRemainingTime(60);
-      } else {
+        if (data.status === "pending") {
+          // Start countdown for the next polling attempt
+          setRemainingTime(60);
+        } else {
+          setIsLoading(false);
+        }
+
+        return data;
+      } catch (error) {
+        console.error("Request failed", error);
+        setError("Failed to fetch interview results. Please try again later.");
         setIsLoading(false);
+        return null;
       }
-
-      return data;
-    } catch (error) {
-      console.error("Request failed", error);
-      setError("Failed to fetch interview results. Please try again later.");
-      setIsLoading(false);
-      return null;
-    }
-  }, [apiUrl]);
+    },
+    [apiUrl]
+  );
 
   // Effect to initialize interview ID and theme
   useEffect(() => {
@@ -149,7 +179,6 @@ export default function InterviewResultPage() {
       ).matches;
       setDarkMode(savedTheme === "dark" || (!savedTheme && prefersDark));
     }
-
   }, []);
 
   // Effect to fetch results when interview ID is available
@@ -255,27 +284,43 @@ export default function InterviewResultPage() {
   if (result?.status === "pending") {
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-          }`}
+        className={`flex items-center justify-center min-h-screen ${
+          darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        }`}
       >
         <div className="text-center max-w-md">
           <div
-            className={`animate-spin h-12 w-12 border-4 ${darkMode
-              ? "border-blue-400 border-t-gray-900"
-              : "border-blue-500 border-t-transparent"
-              } rounded-full mx-auto mb-4`}
+            className={`animate-spin h-12 w-12 border-4 ${
+              darkMode
+                ? "border-blue-400 border-t-gray-900"
+                : "border-blue-500 border-t-transparent"
+            } rounded-full mx-auto mb-4`}
           ></div>
-          <h2 className="text-xl font-bold mb-2">Interview Results Processing</h2>
-          <p className="mb-4">
-            Your interview is currently being analyzed by our AI. This typically takes 8-10 minutes.
+          <h2 className="text-xl font-bold mb-2 text-secondary">
+            Interview Results Processing
+          </h2>
+          <p className="mb-4 text-gray-300">
+            Your interview is currently being analyzed by our AI. This typically
+            takes 8-10 minutes.
           </p>
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
               <span>Progress</span>
               <span>Auto-refreshing in {remainingTime}s</span>
             </div>
-            <Progress value={100 - (remainingTime / 60 * 100)} className="h-2" />
+            <Progress
+              value={100 - (remainingTime / 60) * 100}
+              className="h-2"
+            />
           </div>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 mx-6 p-4"
+            onClick={() => router.push("/dashboard")}
+          >
+            <Home className="h-4 w-4  " />
+            Home
+          </Button>
           <Button
             variant="outline"
             className="flex items-center gap-2"
@@ -293,15 +338,17 @@ export default function InterviewResultPage() {
   if (isLoading) {
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-          }`}
+        className={`flex items-center justify-center min-h-screen ${
+          darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        }`}
       >
         <div className="text-center">
           <div
-            className={`animate-spin h-12 w-12 border-4 ${darkMode
-              ? "border-blue-400 border-t-gray-900"
-              : "border-blue-500 border-t-transparent"
-              } rounded-full mx-auto mb-4`}
+            className={`animate-spin h-12 w-12 border-4 ${
+              darkMode
+                ? "border-blue-400 border-t-gray-900"
+                : "border-blue-500 border-t-transparent"
+            } rounded-full mx-auto mb-4`}
           ></div>
           <p className="text-lg">Loading interview results...</p>
         </div>
@@ -313,46 +360,144 @@ export default function InterviewResultPage() {
   if (error || !result || !result.feedback) {
     console.log(result?.feedback);
 
-    const errorMessage = error || "Failed to load interview results. Please try again later.";
+    const errorMessage =
+      error || "Failed to load interview results. Please try again later.";
 
     return (
       <div
-        className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"
-          }`}
+        className={`fixed inset-0 flex items-center justify-center min-h-screen z-50 ${
+          darkMode ? "bg-black bg-opacity-86 " : "bg-black-900 bg-opacity-75"
+        }`}
       >
-        <Card className="w-full max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-center text-red-500">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center">{errorMessage}</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button onClick={handleManualRefresh}>Retry</Button>
-          </CardFooter>
-        </Card>
+        <div className="w-full max-w-lg bg-gray-800  rounded-lg">
+          <div className="p-4">
+            <CardHeader>
+              <CardTitle className="text-center text-red-500">
+                ⚠️ Error
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-white">{errorMessage}</p>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="px-6 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700"
+              >
+                Dashboard
+              </button>
+              <div className="mx-4"></div>
+              <button
+                onClick={handleManualRefresh}
+                className="px-6 py-2 rounded-lg bg-white  hover:bg-gray-300"
+              >
+                ↻ Retry
+              </button>
+            </CardFooter>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Processing successful results
-  var { feedback } = result;
-  console.log("SSSSS", feedback);
+  // Replace the section where you're processing the feedback data (around line 410-425)
 
-  const interviewDate = new Date(feedback.generation_timestamp);
-  const formattedDate = interviewDate.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+// Processing successful results
+var { feedback } = result;
+console.log("SSSSS", feedback);
 
-  const processingTimeMinutes = (feedback.processing_time_ms / 60000).toFixed(2);
-  console.log("feedback", result.feedback);
-  feedback = result.feedback.data;
+// Debug: Log the entire feedback structure to see where the role might be
+console.log("Complete feedback structure:", JSON.stringify(feedback, null, 2));
+
+// Check if feedback exists and has the expected structure
+if (!feedback) {
+  setError("Invalid feedback data format");
+  return;
+}
+
+// Check various possible paths where interview_role might be located
+let interviewRole = "Not Specified";
+if (feedback.interview_metadata?.interview_role) {
+  interviewRole = feedback.interview_metadata.interview_role;
+} else if (feedback.data?.interview_metadata?.interview_role) {
+  interviewRole = feedback.data.interview_metadata.interview_role;
+} else if (feedback.data?.data?.interview_metadata?.interview_role) {
+  interviewRole = feedback.data.data.interview_metadata.interview_role;
+}
+
+console.log("Found interview role:", interviewRole);
+
+// Make sure all required properties exist with default values
+const ensureFeedbackData = () => {
+  // Create a default structure for interview_metadata if it doesn't exist
+  if (!feedback.interview_metadata) {
+    feedback.interview_metadata = {
+      interview_role: interviewRole, // Use the found role instead of default
+      skills: "",
+      projects: "",
+      interviewee: ""
+    };
+  } else {
+    // Ensure interview_role exists even if interview_metadata does
+    feedback.interview_metadata.interview_role = interviewRole; // Use the found role
+    feedback.interview_metadata.skills = feedback.interview_metadata.skills || "";
+    feedback.interview_metadata.projects = feedback.interview_metadata.projects || "";
+    feedback.interview_metadata.interviewee = feedback.interview_metadata.interviewee || "";
+  }
+
+  // Ensure coding_evaluation exists with all required fields
+  if (!feedback.coding_evaluation) {
+    feedback.coding_evaluation = {
+      approach: "Not evaluated",
+      code_quality: "Not evaluated",
+      correctness: "Not evaluated",
+      efficiency: "Not evaluated",
+      suggestions: "No suggestions provided"
+    };
+  }
+
+  // Ensure arrays exist
+  feedback.strengths = Array.isArray(feedback.strengths) ? feedback.strengths : [];
+  feedback.weaknesses = Array.isArray(feedback.weaknesses) ? feedback.weaknesses : [];
+  feedback.recommendations = Array.isArray(feedback.recommendations) ? feedback.recommendations : [];
+  feedback.keywords_missed = Array.isArray(feedback.keywords_missed) ? feedback.keywords_missed : [];
+  feedback.questions = Array.isArray(feedback.questions) ? feedback.questions : [];
+
+  // Ensure numeric and string values
+  feedback.interview_score = feedback.interview_score || 0;
+  feedback.hiring_recommendation = feedback.hiring_recommendation || "No recommendation provided";
+  feedback.generation_timestamp = feedback.generation_timestamp || new Date().toISOString();
+  feedback.processing_time_ms = feedback.processing_time_ms || 0;
+  feedback.overview = feedback.overview || "No overview provided";
+
+  return feedback;
+};
+
+// Check if data property exists and use that structure, otherwise use original
+if (feedback.data) {
+  console.log("Found feedback.data structure, using that");
+  feedback = feedback.data;
+}
+
+// Ensure all required properties exist
+feedback = ensureFeedbackData();
+
+// Format the date AFTER ensuring feedback structure
+const interviewDate = new Date(feedback.generation_timestamp);
+const formattedDate = interviewDate.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const processingTimeMinutes = (feedback.processing_time_ms / 60000).toFixed(2);
+console.log("Processed feedback:", feedback);
   return (
     <div
-      className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-        } transition-colors duration-200 py-8 px-4 sm:px-6 lg:px-8`}
+      className={`min-h-screen ${
+        darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      } transition-colors duration-200 py-8 px-4 sm:px-6 lg:px-8`}
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -361,7 +506,7 @@ export default function InterviewResultPage() {
               variant="outline"
               size="sm"
               className="flex items-center gap-1"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
             >
               <Home className={`h-4 w-4 ${darkMode ? "" : "text-black"}} `} />
               Home
@@ -414,16 +559,18 @@ export default function InterviewResultPage() {
 
         <div
           id="interview-result"
-          className={`space-y-6 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-            }`}
+          className={`space-y-6 ${
+            darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+          }`}
         >
           {/* Header Card */}
           <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
             <CardHeader
-              className={`${darkMode
-                ? "bg-gradient-to-r from-cyan-700 to-indigo-800"
-                : "bg-gradient-to-r from-cyan-500 to-indigo-600"
-                } text-white rounded-t-lg`}
+              className={`${
+                darkMode
+                  ? "bg-gradient-to-r from-cyan-700 to-indigo-800"
+                  : "bg-gradient-to-r from-cyan-500 to-indigo-600"
+              } text-white rounded-t-lg`}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
@@ -437,11 +584,9 @@ export default function InterviewResultPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl text-cyan-200">
-                      Junior React Developer Interview
+    {feedback.interview_metadata.interview_role}
                     </CardTitle>
-                    <CardDescription className="text-white text-lg font-bold pt-2">
-                      Muhammad Ahsan Sajjad
-                    </CardDescription>
+                    <CardDescription className="text-white text-lg font-bold pt-2"> {user!.name}</CardDescription>
                   </div>
                 </div>
                 <div className="text-right">
@@ -464,13 +609,14 @@ export default function InterviewResultPage() {
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2 mt-4">
                   <h3
-                    className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
+                    className={`text-sm font-medium ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
                     Overall Score
                   </h3>
                   <span className="text-sm font-medium">
-                    {feedback.interview_score}%
+                    {feedback.interview_score}/100
                   </span>
                 </div>
                 <div className="w-full bg-gray-300 h-2">
@@ -484,49 +630,55 @@ export default function InterviewResultPage() {
                             ? "#b91c1c"
                             : "#fca5a5"
                           : feedback.interview_score < 70
-                            ? darkMode
-                              ? "#ca8a04"
-                              : "#fcd34d"
-                            : darkMode
-                              ? "#16a34a"
-                              : "#86efac",
+                          ? darkMode
+                            ? "#ca8a04"
+                            : "#fcd34d"
+                          : darkMode
+                          ? "#16a34a"
+                          : "#86efac",
                     }}
                   />
                 </div>
               </div>
 
               <div
-                className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
+                className={`text-sm ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
               >
                 {feedback.overview}
               </div>
 
               <div
-                className={`mt-4 pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
-                  }`}
+                className={`mt-4 pt-4 border-t ${
+                  darkMode ? "border-gray-700" : "border-gray-200"
+                }`}
               >
                 <h3
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"
-                    } mb-2`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  } mb-2`}
                 >
                   Hiring Recommendation
                 </h3>
                 <div className="flex items-start gap-2">
                   {feedback.interview_score < 60 ? (
                     <AlertTriangle
-                      className={`h-5 w-5 ${darkMode ? "text-red-400" : "text-red-500"
-                        } flex-shrink-0 mt-0.5`}
+                      className={`h-5 w-5 ${
+                        darkMode ? "text-red-400" : "text-red-500"
+                      } flex-shrink-0 mt-0.5`}
                     />
                   ) : (
                     <CheckCircle
-                      className={`h-5 w-5 ${darkMode ? "text-green-400" : "text-green-500"
-                        } flex-shrink-0 mt-0.5`}
+                      className={`h-5 w-5 ${
+                        darkMode ? "text-green-400" : "text-green-500"
+                      } flex-shrink-0 mt-0.5`}
                     />
                   )}
                   <p
-                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                   >
                     {feedback.hiring_recommendation}
                   </p>
@@ -540,8 +692,9 @@ export default function InterviewResultPage() {
             <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle
-                  className={`${darkMode ? "text-green-400" : "text-green-600"
-                    } flex items-center gap-2`}
+                  className={`${
+                    darkMode ? "text-green-400" : "text-green-600"
+                  } flex items-center gap-2`}
                 >
                   <CheckCircle className="h-5 w-5" />
                   Strengths
@@ -552,14 +705,16 @@ export default function InterviewResultPage() {
                   {feedback.strengths.map((strength, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span
-                        className={`${darkMode ? "text-green-400" : "text-green-600"
-                          } font-medium text-lg leading-none`}
+                        className={`${
+                          darkMode ? "text-green-400" : "text-green-600"
+                        } font-medium text-lg leading-none`}
                       >
                         •
                       </span>
                       <span
-                        className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                          }`}
+                        className={`text-sm ${
+                          darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                       >
                         {strength}
                       </span>
@@ -572,8 +727,9 @@ export default function InterviewResultPage() {
             <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle
-                  className={`${darkMode ? "text-red-400" : "text-red-600"
-                    } flex items-center gap-2`}
+                  className={`${
+                    darkMode ? "text-red-400" : "text-red-600"
+                  } flex items-center gap-2`}
                 >
                   <AlertTriangle className="h-5 w-5" />
                   Areas for Improvement
@@ -584,14 +740,16 @@ export default function InterviewResultPage() {
                   {feedback.weaknesses.map((weakness, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span
-                        className={`${darkMode ? "text-red-400" : "text-red-600"
-                          } font-medium text-lg leading-none`}
+                        className={`${
+                          darkMode ? "text-red-400" : "text-red-600"
+                        } font-medium text-lg leading-none`}
                       >
                         •
                       </span>
                       <span
-                        className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                          }`}
+                        className={`text-sm ${
+                          darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                       >
                         {weakness}
                       </span>
@@ -613,56 +771,64 @@ export default function InterviewResultPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
                 <div>
                   <h3
-                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
-                      } mb-1`}
+                    className={`text-sm font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
                   >
                     Approach
                   </h3>
                   <p
-                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                   >
                     {feedback.coding_evaluation.approach}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
-                      } mb-1`}
+                    className={`text-sm font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
                   >
                     Code Quality
                   </h3>
                   <p
-                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                   >
                     {feedback.coding_evaluation.code_quality}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
-                      } mb-1`}
+                    className={`text-sm font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
                   >
                     Correctness
                   </h3>
                   <p
-                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                   >
                     {feedback.coding_evaluation.correctness}
                   </p>
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
-                      } mb-1`}
+                    className={`text-sm font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
                   >
                     Efficiency
                   </h3>
                   <p
-                    className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                   >
                     {feedback.coding_evaluation.efficiency}
                   </p>
@@ -670,18 +836,21 @@ export default function InterviewResultPage() {
               </div>
 
               <div
-                className={`mt-4 pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
-                  }`}
+                className={`mt-4 pt-4 border-t ${
+                  darkMode ? "border-gray-700" : "border-gray-200"
+                }`}
               >
                 <h3
-                  className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"
-                    } mb-1`}
+                  className={`text-sm font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  } mb-1`}
                 >
                   Suggestions
                 </h3>
                 <p
-                  className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}
+                  className={`text-sm ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
                 >
                   {feedback.coding_evaluation.suggestions}
                 </p>
@@ -727,12 +896,14 @@ export default function InterviewResultPage() {
                 {feedback.recommendations.map((recommendation, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <BarChart2
-                      className={`h-4 w-4 ${darkMode ? "text-blue-400" : "text-blue-500"
-                        } flex-shrink-0 mt-0.5`}
+                      className={`h-4 w-4 ${
+                        darkMode ? "text-blue-400" : "text-blue-500"
+                      } flex-shrink-0 mt-0.5`}
                     />
                     <span
-                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
+                      className={`text-sm ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                     >
                       {recommendation}
                     </span>
@@ -754,24 +925,28 @@ export default function InterviewResultPage() {
                 {feedback.questions.map((question, index) => (
                   <div
                     key={index}
-                    className={`border rounded-lg p-4 shadow-sm ${darkMode
-                      ? "border-gray-700 bg-gray-800/50"
-                      : "border-gray-100 bg-white"
-                      }`}
+                    className={`border rounded-lg p-4 shadow-sm ${
+                      darkMode
+                        ? "border-gray-700 bg-gray-800/50"
+                        : "border-gray-100 bg-white"
+                    }`}
                   >
                     <h3
-                      className={`font-medium ${darkMode ? "text-white" : "text-gray-900"
-                        } mb-2`}
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      } mb-2`}
                     >
                       {question.original_question}
                     </h3>
                     <div
-                      className={`pl-4 border-l-2 ${darkMode ? "border-gray-700" : "border-gray-200"
-                        } mb-3`}
+                      className={`pl-4 border-l-2 ${
+                        darkMode ? "border-gray-700" : "border-gray-200"
+                      } mb-3`}
                     >
                       <p
-                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-700"
-                          } italic`}
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-700"
+                        } italic`}
                       >
                         "{question.user_answer}"
                       </p>
@@ -779,10 +954,12 @@ export default function InterviewResultPage() {
 
                     <div className="mb-4">
                       <p
-                        className={`text-sm ${darkMode ? "text-cyan-400" : "text-cyan-600"
-                          }`}
+                        className={`text-sm ${
+                          darkMode ? "text-cyan-400" : "text-cyan-600"
+                        }`}
                       >
-                        <span className="font-bold"> Remarks:</span> {question.feedback}
+                        <span className="font-bold"> Remarks:</span>{" "}
+                        {question.feedback}
                       </p>
                     </div>
 
@@ -790,19 +967,19 @@ export default function InterviewResultPage() {
                       <ScoreCard
                         title="Clarity"
                         score={question.clarity_score}
-                        maxScore={5}
+                        maxScore={10}
                         darkMode={darkMode}
                       />
                       <ScoreCard
                         title="Relevance"
                         score={question.relevance_score}
-                        maxScore={5}
+                        maxScore={10}
                         darkMode={darkMode}
                       />
                       <ScoreCard
                         title="Technical"
                         score={question.technical_accuracy}
-                        maxScore={5}
+                        maxScore={10}
                         darkMode={darkMode}
                       />
                     </div>
@@ -814,8 +991,9 @@ export default function InterviewResultPage() {
 
           {/* Footer Info */}
           <div
-            className={`text-center text-xs ${darkMode ? "text-gray-500" : "text-gray-500"
-              } mt-8`}
+            className={`text-center text-xs ${
+              darkMode ? "text-gray-500" : "text-gray-500"
+            } mt-8`}
           >
             <p>Interview conducted on {formattedDate}</p>
             <p>Processing time: {processingTimeMinutes} minutes</p>
@@ -862,12 +1040,14 @@ function ScoreCard({
 
   return (
     <div
-      className={`rounded p-2 text-center ${darkMode ? "bg-gray-700" : "bg-gray-50"
-        }`}
+      className={`rounded p-2 text-center ${
+        darkMode ? "bg-gray-700" : "bg-gray-50"
+      }`}
     >
       <div
-        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"
-          } mb-1`}
+        className={`text-xs ${
+          darkMode ? "text-gray-400" : "text-gray-500"
+        } mb-1`}
       >
         {title}
       </div>

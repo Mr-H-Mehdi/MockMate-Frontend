@@ -217,7 +217,7 @@ const InterviewPage = () => {
     // Add animation for navigation
     document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
     setTimeout(() => {
-      router.replace("/");
+      router.replace("/dashboard");
     }, 500);
   };
 
@@ -392,6 +392,8 @@ const InterviewPage = () => {
 
       <main className={`h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <Sidebar
+        input=""
+        expected_output=""
           question={question || "Loading question..."}
           shouldShowReplay={true}
           question_statement={`Question ${displayQuestionNo} out of ${total_questions}`}
@@ -418,16 +420,16 @@ const InterviewPage = () => {
 
         {/* Enhanced Completion Modal */}
         {isCompletionModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate__animated animate__fadeIn">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-auto text-center shadow-2xl animate__animated animate__zoomIn">
+          <div className="fixed inset-0 bg-black bg-blur backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 animate__animated animate__fadeIn">
+            <div className="bg-gray-800 text-white  rounded-lg p-8 max-w-md mx-auto text-center shadow-2xl animate__animated animate__zoomIn">
               <div className="text-5xl mb-4 animate__animated animate__bounceIn animate__delay-1s">🎉</div>
-              <h2 className="text-2xl font-bold mb-4 text-blue-600">Interview Completed!</h2>
+              <h2 className="text-2xl font-bold mb-4 text-secondary ">Interview Completed!</h2>
               <p className="mb-6">
                 This concludes the voice interview. Let's proceed to the coding assessment.
               </p>
               <button
-                className={`px-6 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${!isIntervieweeDisabled
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                className={`px-6 py-2 rounded-lg transition-all duration-300 text-onSecondary  transform hover:scale-105 ${!isIntervieweeDisabled
+                  ? "px-6 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700"
                   : "bg-gray-400 text-gray-200 cursor-not-allowed"
                   } animate__animated animate__pulse animate__infinite animate__slow`}
                 onClick={handleProceedToCoding}

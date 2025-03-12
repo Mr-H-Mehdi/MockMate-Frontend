@@ -49,7 +49,7 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
             onClick={onClose}
             className={`px-4 py-2 rounded-md text-white ${isSuccess ? 'bg-gradient-to-r from-secondary to-hoverSecondary hover:opacity-90' : 'bg-red-500 hover:bg-red-600'}`}
           >
-            Close
+            Okay
           </button>
         </div>
       </div>

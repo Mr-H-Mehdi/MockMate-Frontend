@@ -15,6 +15,12 @@ const CodingPage = () => {
   const [question, setQuestion] = useState<string | null>(
     "Loading question..."
   );
+  const [input, setInput] = useState<string | null>(
+    ""
+  );
+  const [expected_output, setExpectedOutput] = useState<string | null>(
+    ""
+  );
   const [question_no, setQuestionNo] = useState<string | null>("1");
   const [total_questions, setTotalQuestions] = useState<string | null>("3");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +38,8 @@ const CodingPage = () => {
       expected_output: "",
     },
   ]);
+  const [isSubmitConfirmationModalOpen, setIsSubmitConfirmationModalOpen] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState({ code: "", language: "" });
 
   useEffect(() => {
     // Use a ref to track if the API request has already been made
@@ -65,7 +73,8 @@ const CodingPage = () => {
     // Update the question when the current problem index changes
     if (codingProblems.length > 0 && !isLoading) {
       const problem = codingProblems[currentProblemIndex];
-      setQuestion(`>>> ${problem.title}\n\n${problem.description}`);
+      setQuestion(`> ${problem.title}\n\n${problem.description}`);
+      setQuestion(`> ${problem.title}\n\n${problem.description}`);
     }
   }, [currentProblemIndex, codingProblems, isLoading]);
 
@@ -79,11 +88,14 @@ const CodingPage = () => {
       console.log(
         `Fetching coding question from ${apiUrl}/api/coding/generate-question`
       );
-
+      
       const formData = new FormData();
       formData.append("interview_id", interview_id);
       formData.append("language", language);
-
+      
+      console.log(
+        `data id ${interview_id} lang: ${language}`
+      );
       // Manually build the query string
       const queryParams = new URLSearchParams();
 
@@ -135,7 +147,7 @@ const CodingPage = () => {
 
         // Set the question for the sidebar
         setQuestion(
-          `>>> ${question.split("\n")[0] || "Coding Problem"}\n\n${question}`
+          `> ${question.split("\n")[0] || "Coding Problem"}\n\n${question}`
         );
       } else {
         throw new Error("Invalid API response format");
@@ -153,7 +165,6 @@ const CodingPage = () => {
     const requestBody = {
       interview_id: interviewId,
     };
-    
 
     fetch(`${apiUrl}/api/interview/terminate-interview`, {
       method: "DELETE",
@@ -178,32 +189,41 @@ const CodingPage = () => {
     // Add animation for navigation
     document.body.classList.add('animate__animated', 'animate__fadeOut', 'animate__faster');
     setTimeout(() => {
-      router.replace("/");
+      router.replace("/dashboard");
     }, 500);
   };
 
-  const handleCodeSubmit = async (code: any, language: string) => {
-    console.log(`Submitting ${language} code solution:`, code);
+  const showSubmitConfirmation = (code: any, language: string) => {
+    setPendingSubmission({ code, language });
+    setIsSubmitConfirmationModalOpen(true);
+  };
 
+  const handleCodeSubmit = async (code: any, language: string) => {
+    // Close the confirmation modal
+    
+    console.log(`Submitting ${language} code solution:`, code);
+    
     // Create payload for API call
     const payload = {
       interview_id: interviewId,
       code: code,
     };
-
+    
     // Log the payload (for demo purposes)
     console.log("API payload:", payload);
-
+    
     const requestBody = {
       interview_id: interviewId,
       user_code: code,
     };
-
+    
     // Check if interviewId and code are not undefined
+    router.replace("/results");
+    setIsSubmitConfirmationModalOpen(false);
     if (interviewId && code) {
       console.log("Interview ID:", interviewId);
       console.log("Code solution:", code);
-
+      
       fetch(`${apiUrl}/api/feedback/detailed-feedback`, {
         method: "POST",
         headers: {
@@ -230,13 +250,6 @@ const CodingPage = () => {
     // Simulate API call
     console.log(`Sending code to ${apiUrl}/api/coding/evaluate-code`);
 
-    // Show a simple alert
-    alert(
-      `${
-        language.charAt(0).toUpperCase() + language.slice(1)
-      } solution submitted successfully!`
-    );
-
     // Move to the next problem or show completion
     if (currentProblemIndex < codingProblems.length - 1) {
       setCurrentProblemIndex(currentProblemIndex + 1);
@@ -247,9 +260,16 @@ const CodingPage = () => {
     }
   };
 
+  const cancelSubmission = () => {
+    setIsSubmitConfirmationModalOpen(false);
+    setPendingSubmission({ code: "", language: "" });
+  };
+
   return (
     <main className="h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center">
       <Sidebar
+      input={codingProblems[0].input}
+      expected_output={codingProblems[0].expected_output}
         question={question || "Loading problem..."}
         question_statement="Coding Problem"
         shouldShowReplay={false}
@@ -276,7 +296,7 @@ const CodingPage = () => {
               codingProblems[currentProblemIndex]?.language || "javascript"
             }
             question={codingProblems[currentProblemIndex]?.description}
-            onSubmit={handleCodeSubmit}
+            onSubmit={showSubmitConfirmation}
           />
         )}
       </div>
@@ -287,8 +307,36 @@ const CodingPage = () => {
         onTerminate={handleTerminateInterview}
       />
 
+      {/* Submit Confirmation Modal */}
+      {isSubmitConfirmationModalOpen && (
+        <div className="fixed inset-0 bg-black bg-blur backdrop-blur-sm bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-800 text-secondary rounded-lg p-8 max-w-md mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-4">
+              Submit Your Solution?
+            </h2>
+            <p className="mb-6 text-white">
+              Are you sure you want to submit your {pendingSubmission.language} solution? Once submitted, you cannot make changes to this solution.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                className="px-6 py-2 rounded-lg bg-secondary text-onSecondary hover:bg-cyan-700"
+                onClick={() => handleCodeSubmit(pendingSubmission.code, pendingSubmission.language)}
+              >
+                Yes, Submit
+              </button>
+              <button
+                className="px-6 py-2 rounded-lg text-cyan-900 bg-gray-100 hover:bg-gray-400"
+                onClick={cancelSubmission}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Completion Modal */}
-      {isCompletionModalOpen && (
+      {/* {isCompletionModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-md mx-auto text-center">
             <h2 className="text-2xl font-bold mb-4">
@@ -314,7 +362,7 @@ const CodingPage = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </main>
   );
 };

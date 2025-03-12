@@ -370,7 +370,7 @@ const CodingEnvironment = ({
       <div className={`p-4 ${isDarkTheme ? "bg-gray-800 text-white" : "bg-white text-gray-800"} border-b`}>
         <h2 className="text-xl font-bold mb-2">Instructions</h2>
         <div className="prose max-w-none">
-          {"Write a function that reverses a string without using the built-in reverse method."}
+          {"Please write code in the function declaration below. Remove any log or print statements before submitting."}
         </div>
       </div>
       
@@ -474,8 +474,8 @@ const CodingEnvironment = ({
             disabled={isRunning}
             className={`px-4 py-2 rounded-lg ${
               isRunning
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700 text-white"
+                ? "bg-cyan-400 cursor-not-allowed"
+                : "bg-cyan-800 hover:bg-cyan-900 text-white"
             }`}
           >
             Run Code
@@ -484,7 +484,7 @@ const CodingEnvironment = ({
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+            className="px-4 py-2 rounded-lg bg-white hover:bg-gray-300 text-cyan-900"
           >
             Submit Solution
           </button>
