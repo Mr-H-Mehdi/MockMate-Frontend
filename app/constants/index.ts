@@ -21,17 +21,17 @@ import {
       title: "Home",
     },
     {
-      id: "features",
-      title: "Features",
+      id: "dashboard",
+      title: "dashboard",
     },
-    {
-      id: "product",
-      title: "Product",
-    },
-    {
-      id: "clients",
-      title: "Clients",
-    },
+    // {
+    //   id: "features",
+    //   title: "Features",
+    // },
+    // {
+    //   id: "clients",
+    //   title: "Clients",
+    // },
     // {
     //   id: "Login",
     //   title: "Login",

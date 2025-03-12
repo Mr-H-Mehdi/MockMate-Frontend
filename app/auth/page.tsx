@@ -58,7 +58,7 @@ const Auth = () => {
           if (response.ok) {
             setIsAuthenticated(true);
             console.log("Token validated with backend. User authenticated.");
-            router.push('/dashboard');
+            router.replace('/dashboard');
           } else {
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');

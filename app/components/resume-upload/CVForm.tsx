@@ -21,7 +21,7 @@ const CVForm = ({
 }) => {
   const [localFormData, setLocalFormData] = useState({
     name: "",
-    role: "Junior Frontend Developer",
+    role: role,
     projects: "",
     skills: "",
   });
@@ -47,11 +47,11 @@ const CVForm = ({
     if (initialData && !initialDataProcessed) {
       const processedData = {
         name: initialData.name !== "Name not found" ? initialData.name : "",
-        role:
-          initialData.qualification &&
-          initialData.qualification !== "Qualification not found"
-            ? initialData.qualification
-            : "",
+        role: role,
+        //   initialData.qualification &&
+        //   initialData.qualification !== "Qualification not found"
+        //     ? initialData.qualification
+        //     : "",
         projects:
           initialData.projects !== "Projects not found"
             ? Array.isArray(initialData.projects)
@@ -74,7 +74,7 @@ const CVForm = ({
   useEffect(() => {
     const isComplete =
       localFormData.name !== "" &&
-      localFormData.role !== "" &&
+      // localFormData.role !== "" &&
       localFormData.projects !== "" &&
       localFormData.skills !== "";
 

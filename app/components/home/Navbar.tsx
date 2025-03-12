@@ -107,9 +107,9 @@ const Navbar = () => {
                 className={`font-poppins font-medium cursor-pointer text-[16px] ${
                   active === nav.title ? "text-secondary" : "text-white"
                 } ${index === navLinks.length - 1 ? "mb-0" : "mb-4"}`}
-                onClick={() => setActive(nav.title)}
+                onClick={nav.title=='dashboard'? ()=>navigate.push("/dashboard"):() => setActive(nav.title)}
               >
-                <a href={`#${nav.id}`}>{nav.title}</a>
+                {/* <a href={`#${nav.id}`}>{nav.title}</a> */}
               </li>
             ))}
             {/* <Button text="Login" styles="m-8 py-1 text-[16px]"></Button> */}
