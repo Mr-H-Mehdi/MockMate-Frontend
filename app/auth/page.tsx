@@ -120,6 +120,7 @@ const Auth = () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       console.log("No token found to logout.");
+      router.replace("/ ")
       return;
     }
 

@@ -14,12 +14,16 @@ const CVDropZone = ({
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [parseSuccess, setParseSuccess] = useState<boolean>(false);
 
   const handleDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (isValidFile(file)) {
       setFile(file);
       setError(null);
+      setIsLoading(true);
+      setParseSuccess(false);
       onFileDrop(file); // Pass file back to parent component
 
       // Upload file to the backend
@@ -36,7 +40,6 @@ const CVDropZone = ({
 
         // console.log(response);
 
-
         if (!response.ok) {
           throw new Error("Failed to upload resume");
         }
@@ -44,12 +47,17 @@ const CVDropZone = ({
         const data = await response.json();
         console.log(data.data);
         onFormDataUpdate(data.data);
+        setIsLoading(false);
+        setParseSuccess(true);
       } catch (error) {
         console.error("Error uploading resume:", error);
         setError("Failed to process the resume. Please try again.");
+        setIsLoading(false);
+        setParseSuccess(false);
       }
     } else {
       setError("Only DOCX and PDF files are allowed.");
+      setParseSuccess(false);
     }
   };
 
@@ -82,13 +90,34 @@ const CVDropZone = ({
       {file && (
         <div className="mt-4">
           <h3 className="text-lg font-medium">Selected File:</h3>
-          <p className="text-secondary font-bold">{file.name}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-2 text-red-500 text-sm">
-          <p>{error}</p>
+          <div className="flex items-center">
+            <p className="text-secondary font-bold">{file.name}</p>
+            
+            {isLoading && (
+              <div className="ml-3 flex items-center">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                <span className="ml-2 text-blue-400 text-sm">Processing...</span>
+              </div>
+            )}
+            
+            {parseSuccess && !isLoading && !error && (
+              <div className="ml-3 flex items-center">
+                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span className="ml-2 text-green-400 text-sm">Successfully parsed</span>
+              </div>
+            )}
+            
+            {error && (
+              <div className="ml-3 flex items-center">
+                <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span className="ml-2 text-red-400 text-sm">{error}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

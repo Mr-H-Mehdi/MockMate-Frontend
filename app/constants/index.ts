@@ -17,12 +17,12 @@ import {
   
   export const navLinks = [
     {
-      id: "home",
+      id: "",
       title: "Home",
     },
     {
       id: "dashboard",
-      title: "dashboard",
+      title: "Dashboard",
     },
     // {
     //   id: "features",
