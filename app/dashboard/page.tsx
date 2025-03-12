@@ -19,6 +19,7 @@ interface Interview {
 
 export default function Dashboard() {
   const router = useRouter();
+  const [user, setUser] = useState(null)
   const [interviews, setInterviews] = useState<Interview[]>([
     {
       "_id": "67cdea3035f6854b23c175fc",
@@ -82,6 +83,16 @@ export default function Dashboard() {
   // For demonstration - uncomment to test the "no interviews" state
   // const [interviews, setInterviews] = useState<Interview[]>([]);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      console.log("No user data found in localStorage");
+      router.replace('/auth');
+    }
+  }, [router]);
+
   const handleViewDetails = (id: string) => {
     localStorage.setItem("interview_id", id);
     router.push('/results');
@@ -101,7 +112,7 @@ export default function Dashboard() {
             {hasInterviews ? 'Welcome back, John Doe' : 'Welcome, John Doe'}
           </h1>
           <p className="text-gray-400 mt-2">
-            {hasInterviews 
+            {hasInterviews
               ? 'Your recent interview sessions are displayed below.'
               : 'Start your first interview session to get personalized feedback.'}
           </p>
@@ -109,20 +120,20 @@ export default function Dashboard() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 mb-8">
-          <button 
+          <button
             onClick={() => router.push('/resume-upload')}
             className="flex items-center px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
           >
             <FaPlay className="mr-2" /> Start a New Interview
           </button>
-          <button 
+          <button
             onClick={() => router.push('/profile')}
             className="flex items-center px-6 py-3 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-600 font-medium rounded-lg shadow-sm transition-colors duration-200"
           >
             <FaUserCog className="mr-2" /> Profile Settings
           </button>
         </div>
-        
+
         {/* Interviews or No Interviews Message */}
         {hasInterviews ? (
           <>
@@ -133,7 +144,7 @@ export default function Dashboard() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {recentInterviews.map((interview) => (
-                  <InterviewCard 
+                  <InterviewCard
                     key={interview._id}
                     interview={interview}
                     onViewDetails={handleViewDetails}
@@ -142,7 +153,7 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-            
+
             {/* Older Interviews */}
             {olderInterviews.length > 0 && (
               <div className="mt-12">
@@ -151,7 +162,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {olderInterviews.map((interview) => (
-                    <InterviewCard 
+                    <InterviewCard
                       key={interview._id}
                       interview={interview}
                       onViewDetails={handleViewDetails}
@@ -170,7 +181,7 @@ export default function Dashboard() {
               </svg>
               <h2 className="text-2xl font-bold text-white mb-2">No previous interviews found</h2>
               <p className="text-gray-400 mb-6">Click the "Start a New Interview" button to begin your first interview session.</p>
-              <button 
+              <button
                 onClick={() => router.push('/new-interview')}
                 className="flex items-center px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
               >
@@ -180,7 +191,7 @@ export default function Dashboard() {
           </div>
         )}
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }
