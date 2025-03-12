@@ -296,10 +296,10 @@ export default function InterviewResultPage() {
                 : "border-blue-500 border-t-transparent"
             } rounded-full mx-auto mb-4`}
           ></div>
-          <h2 className="text-xl font-bold mb-2">
+          <h2 className="text-xl font-bold mb-2 text-secondary">
             Interview Results Processing
           </h2>
-          <p className="mb-4">
+          <p className="mb-4 text-gray-300">
             Your interview is currently being analyzed by our AI. This typically
             takes 8-10 minutes.
           </p>
