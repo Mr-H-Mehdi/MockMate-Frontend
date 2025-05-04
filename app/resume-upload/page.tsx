@@ -13,8 +13,8 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-lg p-6 shadow-lg max-w-md w-full relative ${isSuccess ? 'border-l-4 border-secondary' : 'border-l-4 border-red-500'}`}>
+    <div className="fixed inset-0 bg-black  backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+      <div className={`bg-gray-800  rounded-lg p-6 shadow-lg max-w-md w-full relative ${isSuccess ? 'border-l-4  border-secondary' : 'border-l-4 border-red-500'}`}>
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -31,7 +31,7 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <span className="text-lg font-medium text-gray-800">{message}</span>
+              <span className="text-lg font-medium text-white">{message}</span>
             </div>
           ) : (
             <div className="flex items-center">
@@ -191,7 +191,7 @@ export default function Home() {
   return (
     <main className="h-screen items-center bg-primary w-full font-poppins justify-center">
       <StatusModal 
-        isOpen={modalOpen}
+        isOpen={modalOpen}//
         onClose={isSuccessModal? navigateToInterview :() => setModalOpen(false)}
         message={modalMessage}
         isSuccess={isSuccessModal}

@@ -88,12 +88,15 @@ const Sidebar = ({
         </div>
       </div>
 
-      <button
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 w-[85%] rounded-lg shadow-lg transition-all duration-300 hover:scale-105 animate__animated animate__fadeInUp animate__delay-3s flex items-center justify-center"
-        onClick={onTerminate}
-      >
-        <span className="mr-0"></span> Terminate Interview
-      </button>
+      {/* Fixed button container */}
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center animate__animated animate__fadeInUp animate__delay-3s">
+        <button
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 w-[85%] rounded-lg shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center"
+          onClick={onTerminate}
+        >
+          <span className="mr-0"></span> Terminate Interview
+        </button>
+      </div>
     </div>
   );
 };

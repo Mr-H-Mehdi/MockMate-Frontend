@@ -1,5 +1,5 @@
-"use Client";
-
+"use client";
+import { useTheme } from "./components/home/ThemeContext";
 import {
   Navbar,
   Hero,
@@ -12,23 +12,37 @@ import {
   CTA,
   Footer,
 } from "./components/home";
-import CodeEditor from "./components/home/CodeEditor";
 
 export default function Home() {
+  const { theme } = useTheme();
+
   return (
-    <main className=" bg-primary w-full overflow-hidden font-poppins">
+    <main
+      className={`${
+        theme === "dark" ? "bg-primary dark text-gray-300" : "bg-light-primary light"
+      } w-full overflow-hidden font-poppins theme-transition`}
+    >
       <header className="paddingX flexCenter">
         <nav className="boxWidth">
           <Navbar />
         </nav>
       </header>
-      <section className=" bg-primary flexStart">
+
+      <section
+        className={`${
+          theme === "dark" ? "bg-primary" : "bg-light-primary"
+        } flexStart theme-transition`}
+      >
         <section className="boxWidth">
           <Hero />
         </section>
       </section>
-      {/* <CodeEditor/> */}
-      <section className=" bg-primary paddingX flexStart">
+
+      <section
+        className={`${
+          theme === "dark" ? "bg-primary" : "bg-light-primary"
+        } paddingX flexStart theme-transition`}
+      >
         <section className="boxWidth">
           <Stats />
           <Business />

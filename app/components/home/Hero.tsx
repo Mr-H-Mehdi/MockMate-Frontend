@@ -4,8 +4,11 @@ import { motion } from "framer-motion";
 import { slideIn } from "../../styles/animations";
 import { discount, robot } from "../../../public";
 import GetStarted from "./GetStarted";
+import { useTheme } from "./ThemeContext";
+
 
 const Hero = () => {
+  const { theme } = useTheme();
   return (
     <section id="home" className="flex md:flex-row flex-col paddingY">
       <motion.div
@@ -18,13 +21,13 @@ const Hero = () => {
         <div className="flex flex-row items-center py-[6px] px-4 bg-discount-gradient rounded-[10px] mb-2">
           {/* <Image src={discount} alt="discount" width={32} height={32} priority={true} /> */}
           <p className="paragraph ml-2">
-            <span className="text-white">Check Out </span> Our New {" "}
-            <span className="text-gradient1 ">Fullstack Web Developer </span>Mock
+            <span className={`${theme==="dark"? "text-white":"text-gray-700" }`}>Check Out </span> Our New {" "}
+            <span className={`${theme==="dark"? "text-gradient1 ":"text-gradient1d" }`}>Fullstack Web Developer </span>Mock
           </p>
         </div>
 
         <div className="flex flex-row justify-between items-center w-full">
-          <h1 className="flex-1 font-poppins font-semibold ss:text-[72px] text-[52px] text-white ss:leading-[100.8px] leading-[75px]">
+          <h1 className={`${theme==="dark"? "flex-1 font-poppins font-semibold ss:text-[72px] text-[52px] text-white ss:leading-[100.8px] leading-[75px]":"flex-1 font-poppins font-semibold ss:text-[72px] text-[52px] text-gray-700 ss:leading-[100.8px] leading-[75px]" }`} >
             Let's <br className="sm:block hidden" />{" "}
             <span className="text-gradient">Prepare For </span>{" "}
           </h1>
@@ -33,7 +36,7 @@ const Hero = () => {
           </div>
         </div>
 
-        <h1 className="font-poppins font-semibold ss:text-[68px] text-[52px] text-white ss:leading-[100.8px] leading-[75px] w-full">
+        <h1 className={`${theme==="dark"? "font-poppins font-semibold ss:text-[68px] text-[52px] text-white ss:leading-[100.8px] leading-[75px] w-full":"font-poppins font-semibold ss:text-[68px] text-[52px] text-gray-700 ss:leading-[100.8px] leading-[75px] w-full" }`}>
           Your Next Venture.
         </h1>
         <p className="paragraph max-w-[470px] mt-5">

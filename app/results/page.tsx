@@ -91,7 +91,7 @@ export default function InterviewResultPage() {
   const [user, setUser] = useState<User | null>(null);
 
   const [error, setError] = useState<string | null>(null);
-  const [remainingTime, setRemainingTime] = useState<number>(60);
+  const [remainingTime, setRemainingTime] = useState<number>(5);
   const router = useRouter();
 
   useEffect(() => {
@@ -301,7 +301,7 @@ export default function InterviewResultPage() {
           </h2>
           <p className="mb-4 text-gray-300">
             Your interview is currently being analyzed by our AI. This typically
-            takes 8-10 minutes.
+            takes 8-10 seconds.
           </p>
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
@@ -309,7 +309,7 @@ export default function InterviewResultPage() {
               <span>Auto-refreshing in {remainingTime}s</span>
             </div>
             <Progress
-              value={100 - (remainingTime / 60) * 100}
+              value={100 - (remainingTime / 5) * 100}
               className="h-2"
             />
           </div>
