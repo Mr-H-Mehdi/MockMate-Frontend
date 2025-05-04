@@ -66,10 +66,11 @@ export default function Home() {
     skills: string;
   } | null>(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
-  const [totalQuestions, setTotalQuestions] = useState(5); // Add state for number of questions
-  const [role, setRole] = useState("Junior Frontend Developer"); // Add state for number of questions
+  const [totalQuestions, setTotalQuestions] = useState(5);
+  const [role, setRole] = useState("Junior Frontend Developer");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null); // State to hold user data
+  const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
   const router = useRouter();
   
   // Modal state
@@ -77,40 +78,80 @@ export default function Home() {
   const [modalMessage, setModalMessage] = useState("");
   const [isSuccessModal, setIsSuccessModal] = useState(true);
 
+  // Fetch user profile on component mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      console.log("No user data found in localStorage");
-      router.replace('/auth');
-    }
-  }, [router]);
+    const fetchUserAndProfile = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        
+        try {
+          // Fetch existing profile
+          const response = await fetch(`${apiUrl}/api/profile`, {
+            headers: {
+              'Authorization': `${localStorage.getItem('authToken')}`,
+            },
+          });
+
+          if (response.ok) {
+            const profileData = await response.json();
+            if (profileData) {
+              // If profile exists, populate form with existing data
+              setFormData({
+                name: profileData.name || userData.name || "",
+                role: role,
+                projects: Array.isArray(profileData.projects) 
+                  ? profileData.projects.map((p: any) => p.name).join(", ")
+                  : profileData.projects || "",
+                skills: Array.isArray(profileData.skills) 
+                  ? profileData.skills.join(", ")
+                  : profileData.skills || "",
+              });
+              setIsFormComplete(true);
+            } else {
+              // If no profile exists, initialize with user's name
+              setFormData({
+                name: userData.name || "",
+                role: role,
+                projects: "",
+                skills: "",
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          // Initialize with user's name even if profile fetch fails
+          setFormData({
+            name: userData.name || "",
+            role: role,
+            projects: "",
+            skills: "",
+          });
+        }
+      } else {
+        console.log("No user data found in localStorage");
+        router.replace('/auth');
+      }
+      setIsLoading(false);
+    };
+
+    fetchUserAndProfile();
+  }, [router, role]);
 
   const handleFileDrop = (file: File) => {
     setFile(file);  
   };
 
   const handleFormDataUpdate = (data: any) => {
-
-    console.log("dataname1");
-    console.log(data.data);
-    console.log("dataname2");
-    console.log(data.data.name);
-
-
-    // const content = JSON.parse(data.data);
-    // console.log("content");
-    // console.log(content);
-    // console.log("content name");
-    // console.log(content.name);
-
-    setFormData({
-      name: data.data.name || "",
-      role: role,
-      projects: data.data.projects || "",
-      skills: data.data.skills || "",
-    });
+    if (data.status === 'success' && data.data) {
+      setFormData({
+        name: data.data.name || user?.name || "",
+        role: role,
+        projects: data.data.projects || "",
+        skills: data.data.skills || "",
+      });
+    }
   };
 
   const navigateToInterview = () => {
@@ -118,7 +159,6 @@ export default function Home() {
   };
 
   const handleButtonClick = async () => {
-    // if (!file || !formData) {
     if (!formData) {
       setModalMessage("Please complete the form and upload a file.");
       setIsSuccessModal(false);
@@ -132,14 +172,10 @@ export default function Home() {
       interview_role: role,
       skills: formData.skills,
       projects: formData.projects,
-      total_questions: totalQuestions, // Include total_questions in data
+      total_questions: totalQuestions,
     };
 
-    console.log("Data to send:", JSON.stringify(dataToSend));
-
     try {
-      console.log(JSON.stringify(dataToSend));
-
       const response = await fetch(
         `${apiUrl}/api/interview/start-interview`,
         {
@@ -156,15 +192,9 @@ export default function Home() {
       }
 
       const result = await response.json();
-
       const { interview_id, audio_file_base64, question, question_no, total_questions } = result.message;
-      // console.log("result:", result);
-      // console.log("result     q:", question);
-      // console.log("result     q    no:", question_no);
-      // console.log("result     q    total:", total_questions);
 
       if (audio_file_base64) {
-
         localStorage.setItem("interview_id", interview_id);
         localStorage.setItem("audio_file_base64", audio_file_base64);
         localStorage.setItem("question", question);
@@ -176,7 +206,6 @@ export default function Home() {
       setIsSuccessModal(true);
       setModalOpen(true);
       
-      // Add a small delay before navigating to show the success message
       setTimeout(() => {
         navigateToInterview();
       }, 1500);
@@ -188,11 +217,19 @@ export default function Home() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-2xl text-cyan-400">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <main className="h-screen items-center bg-primary w-full font-poppins justify-center">
       <StatusModal 
-        isOpen={modalOpen}//
-        onClose={isSuccessModal? navigateToInterview :() => setModalOpen(false)}
+        isOpen={modalOpen}
+        onClose={isSuccessModal ? navigateToInterview : () => setModalOpen(false)}
         message={modalMessage}
         isSuccess={isSuccessModal}
       />
@@ -211,10 +248,10 @@ export default function Home() {
             initialData={formData}
             setFormData={setFormData}
             setIsFormComplete={setIsFormComplete}
-            totalQuestions={totalQuestions} // Pass totalQuestions to CVForm
+            totalQuestions={totalQuestions}
             role={role}
             setRole={setRole}
-            setTotalQuestions={setTotalQuestions} // Pass setTotalQuestions to update the state
+            setTotalQuestions={setTotalQuestions}
           />
           <StartButton
             styles=""

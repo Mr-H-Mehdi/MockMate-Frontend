@@ -83,7 +83,14 @@ export default function ProfilePage() {
         const profileData = await response.json();
         setFormData(profileData);
         setSkills(profileData.skills || []);
-        setProjects(profileData.projects || []);
+        
+        // Transform projects to include id from _id
+        const transformedProjects = (profileData.projects || []).map((project: any) => ({
+          id: project._id || `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: project.name || '',
+          description: project.description || 'Project description will be added here'
+        }));
+        setProjects(transformedProjects);
       } else if (response.status !== 404) {
         throw new Error('Failed to fetch profile');
       }
@@ -99,18 +106,58 @@ export default function ProfilePage() {
   };
 
   const handleFormDataUpdate = (data: any) => {
-    setFormData(data);
-    // Update skills and projects from the parsed resume data
-    if (data.skills) {
-      setSkills(Array.isArray(data.skills) ? data.skills : data.skills.split(',').map((s: string) => s.trim()));
-    }
-    if (data.projects) {
-      const projectsList = Array.isArray(data.projects) ? data.projects : data.projects.split(',').map((p: string) => p.trim());
-      setProjects(projectsList.map((name: string) => ({
-        id: Date.now().toString(),
-        name,
-        description: 'Project description will be added here'
-      })));
+    if (data.status === 'success' && data.data) {
+      const parsedData = data.data;
+      
+      // Parse qualification into education data
+      let degree = '';
+      let field = '';
+      if (parsedData.qualification) {
+        const parts = parsedData.qualification.split(' in ');
+        if (parts.length === 2) {
+          degree = parts[0].trim();
+          field = parts[1].trim();
+        } else {
+          // If there's no "in" separator, use the whole qualification as degree
+          degree = parsedData.qualification.trim();
+        }
+      }
+
+      // Update education data
+      const educationData = {
+        degree: degree,
+        field: field,
+        institution: '', // This will need to be filled manually
+        graduationYear: new Date().getFullYear(), // This will need to be filled manually
+      };
+
+      // Update skills
+      const skillsList = parsedData.skills
+        ? parsedData.skills.split(',').map((skill: string) => skill.trim())
+        : [];
+      setSkills(skillsList);
+      console.log(parsedData.projects);
+      // Update projects with unique IDs
+      const projectsList = parsedData.projects
+        ? parsedData.projects.split(',').map((name: string, index: number) => ({
+            id: `project-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+            name: name.trim(),
+            description: 'Project description will be added here'
+          }))
+        : [];
+      setProjects(projectsList);
+
+      // Update form data while maintaining the Profile type structure
+      const updatedFormData: Profile = {
+        userId: formData?.userId || '',
+        username: formData?.username || '',
+        education: educationData,
+        skills: skillsList,
+        projects: projectsList,
+        resume: formData?.resume || null,
+        updatedAt: new Date()
+      };
+      setFormData(updatedFormData);
     }
   };
 
