@@ -45,7 +45,6 @@ const CVDropZone = ({
         }
 
         const data = await response.json();
-        console.log(data.data);
         onFormDataUpdate(data.data);
         setIsLoading(false);
         setParseSuccess(true);

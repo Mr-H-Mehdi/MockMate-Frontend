@@ -88,7 +88,7 @@ export default function ProjectsSection({ projects, onProjectsChange }: Projects
           <div className="space-y-4">
             {projects.map((project) => (
               <div
-                key={project.id}
+                key={`project-${project.id}`}
                 className="bg-gray-700 rounded-lg p-4 space-y-2"
               >
                 <div className="flex justify-between items-start">
