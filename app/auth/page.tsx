@@ -91,6 +91,8 @@ const Auth = () => {
       body: JSON.stringify(requestBody),
     })
       .then(response => {
+        console.log(response);
+        
         if (!response.ok) {
           throw new Error(`Authentication failed! Status: ${response.status}`);
         }

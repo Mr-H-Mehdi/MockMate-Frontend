@@ -121,8 +121,8 @@ export default function Dashboard() {
   return (
     <div
       className={`min-h-screen ${
-        theme==="dark" ? "bg-black dark" : "bg-gray-50 light"
-      } ${theme==="dark"? "text-white" : "text-gray-800"} theme-transition`}
+        theme === "dark" ? "bg-black dark" : "bg-gray-50 light"
+      } ${theme === "dark" ? "text-white" : "text-gray-800"} theme-transition`}
     >
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg">
         <Navbar />
@@ -132,14 +132,14 @@ export default function Dashboard() {
           <div className="mb-8">
             <h1
               className={`text-3xl font-bold ${
-                theme==="dark" ? "text-cyan-400" : "text-cyan-600"
+                theme === "dark" ? "text-cyan-400" : "text-cyan-600"
               }`}
             >
               {user ? `Welcome back, ${user.name}` : "Welcome"}
             </h1>
             <p
               className={`${
-                theme==="dark" ? "text-gray-400" : "text-gray-600"
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
               } mt-2`}
             >
               {hasInterviews
@@ -153,7 +153,7 @@ export default function Dashboard() {
             <button
               onClick={() => router.push("/resume-upload")}
               className={`flex items-center px-6 py-3 ${
-                theme==="dark"
+                theme === "dark"
                   ? "bg-cyan-600 hover:bg-cyan-700 text-white"
                   : "bg-cyan-500 hover:bg-cyan-600 text-white"
               } font-medium rounded-lg shadow-sm transition-colors duration-200`}
@@ -163,7 +163,7 @@ export default function Dashboard() {
             <button
               onClick={() => router.push("/profile")}
               className={`flex items-center px-6 py-3 ${
-                theme==="dark"
+                theme === "dark"
                   ? "bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-600"
                   : "bg-white hover:bg-gray-100 text-cyan-600 border border-cyan-500"
               } font-medium rounded-lg shadow-sm transition-colors duration-200`}
@@ -177,11 +177,13 @@ export default function Dashboard() {
             <div className="text-center py-10">
               <div
                 className={`animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${
-                  theme==="dark" ? "border-cyan-500" : "border-cyan-600"
+                  theme === "dark" ? "border-cyan-500" : "border-cyan-600"
                 } mx-auto mb-4`}
               ></div>
               <p
-                className={`${theme==="dark" ? "text-gray-400" : "text-gray-600"}`}
+                className={`${
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
               >
                 Loading your interviews...
               </p>
@@ -196,7 +198,7 @@ export default function Dashboard() {
                 <div className="mb-8">
                   <h2
                     className={`text-2xl font-semibold ${
-                      theme==="dark" ? "text-cyan-400" : "text-cyan-600"
+                      theme === "dark" ? "text-cyan-400" : "text-cyan-600"
                     } mb-4 flex items-center`}
                   >
                     <FaHistory className="mr-2" /> Recent Interviews
@@ -207,7 +209,7 @@ export default function Dashboard() {
                         key={interview._id}
                         interview={interview}
                         onViewDetails={handleViewDetails}
-                        // darkMode={isDarkMode}
+                        theme={theme}
                       />
                     ))}
                   </div>
@@ -218,7 +220,7 @@ export default function Dashboard() {
                   <div className="mt-12">
                     <h2
                       className={`text-2xl font-semibold ${
-                        theme==="dark" ? "text-cyan-400" : "text-cyan-600"
+                        theme === "dark" ? "text-cyan-400" : "text-cyan-600"
                       } mb-4 flex items-center`}
                     >
                       <FaHistory className="mr-2" /> Older Interviews
@@ -229,7 +231,7 @@ export default function Dashboard() {
                           key={interview._id}
                           interview={interview}
                           onViewDetails={handleViewDetails}
-                          // darkMode={isDarkMode}
+                          theme={theme}
                         />
                       ))}
                     </div>
@@ -239,7 +241,7 @@ export default function Dashboard() {
             ) : (
               <div
                 className={`${
-                  theme==="dark"
+                  theme === "dark"
                     ? "bg-gray-900 border border-gray-800"
                     : "bg-white border border-gray-200"
                 } rounded-xl shadow-md p-8 text-center`}
@@ -247,7 +249,7 @@ export default function Dashboard() {
                 <div className="flex flex-col items-center justify-center mb-6">
                   <svg
                     className={`w-24 h-24 ${
-                      theme==="dark" ? "text-cyan-500" : "text-cyan-600"
+                      theme === "dark" ? "text-cyan-500" : "text-cyan-600"
                     } mb-4`}
                     fill="none"
                     stroke="currentColor"
@@ -263,14 +265,14 @@ export default function Dashboard() {
                   </svg>
                   <h2
                     className={`text-2xl font-bold ${
-                      theme==="dark" ? "text-white" : "text-gray-800"
+                      theme === "dark" ? "text-white" : "text-gray-800"
                     } mb-2`}
                   >
                     No previous interviews found
                   </h2>
                   <p
                     className={`${
-                      theme==="dark" ? "text-gray-400" : "text-gray-600"
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
                     } mb-6`}
                   >
                     Click the "Start a New Interview" button to begin your first
@@ -279,7 +281,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => router.push("/new-interview")}
                     className={`flex items-center px-6 py-3 ${
-                      theme==="dark"
+                      theme === "dark"
                         ? "bg-cyan-600 hover:bg-cyan-700 text-white"
                         : "bg-cyan-500 hover:bg-cyan-600 text-white"
                     } font-medium rounded-lg shadow-sm transition-colors duration-200`}
