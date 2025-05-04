@@ -6,75 +6,98 @@ interface ProfileFormProps {
   initialData?: any;
   setFormData: (data: any) => void;
   setIsFormComplete: (status: boolean) => void;
+  userName: string;
+  onUsernameUpdate: (newUsername: string) => Promise<void>;
 }
 
 export default function ProfileForm({
   initialData,
   setFormData,
   setIsFormComplete,
+  userName,
+  onUsernameUpdate,
 }: ProfileFormProps) {
   const [localFormData, setLocalFormData] = useState({
+    username: userName,
     education: {
       degree: '',
       field: '',
       institution: '',
       graduationYear: new Date().getFullYear(),
-    },
-    experience: [{
-      title: '',
-      company: '',
-      duration: '',
-      description: '',
-    }],
-    contact: {
-      phone: '',
-      location: '',
-      linkedin: '',
-      github: '',
     }
   });
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   // Process initial data when it becomes available
   useEffect(() => {
-    if (initialData) {
+    if (initialData && !localFormData.education.degree) {
       const processedData = {
+        username: userName,
         education: {
           degree: initialData.education?.degree || '',
           field: initialData.education?.field || '',
           institution: initialData.education?.institution || '',
           graduationYear: initialData.education?.graduationYear || new Date().getFullYear(),
-        },
-        experience: initialData.experience?.length > 0 
-          ? initialData.experience 
-          : [{
-              title: '',
-              company: '',
-              duration: '',
-              description: '',
-            }],
-        contact: {
-          phone: initialData.contact?.phone || '',
-          location: initialData.contact?.location || '',
-          linkedin: initialData.contact?.linkedin || '',
-          github: initialData.contact?.github || '',
         }
       };
 
       setLocalFormData(processedData);
       setFormData(processedData);
     }
-  }, [initialData, setFormData]);
+  }, [initialData, userName]);
+
+  // Update username when userName prop changes
+  useEffect(() => {
+    setLocalFormData(prev => ({
+      ...prev,
+      username: userName
+    }));
+  }, [userName]);
 
   // Check form completeness
   useEffect(() => {
     const isComplete =
-      localFormData.education.degree !== '' &&
-      localFormData.education.institution !== '' &&
-      localFormData.experience[0].title !== '' &&
-      localFormData.experience[0].company !== '';
+      localFormData.username !== '' &&
+      localFormData.education.degree !== '';
 
     setIsFormComplete(isComplete);
   }, [localFormData, setIsFormComplete]);
+
+  const handleUsernameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUsername = e.target.value;
+    setLocalFormData(prev => ({
+      ...prev,
+      username: newUsername
+    }));
+    setUsernameError('');
+  };
+
+  const handleUsernameBlur = async () => {
+    if (localFormData.username === userName) return;
+    
+    if (localFormData.username.trim() === '') {
+      setUsernameError('Username cannot be empty');
+      setLocalFormData(prev => ({
+        ...prev,
+        username: userName
+      }));
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    try {
+      await onUsernameUpdate(localFormData.username);
+    } catch (error) {
+      setUsernameError('Failed to update username');
+      setLocalFormData(prev => ({
+        ...prev,
+        username: userName
+      }));
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  };
 
   const handleEducationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -89,64 +112,45 @@ export default function ProfileForm({
     setFormData(updatedData);
   };
 
-  const handleExperienceChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    const updatedExperience = [...localFormData.experience];
-    updatedExperience[index] = {
-      ...updatedExperience[index],
-      [name]: value,
-    };
-
-    const updatedData = {
-      ...localFormData,
-      experience: updatedExperience,
-    };
-    setLocalFormData(updatedData);
-    setFormData(updatedData);
-  };
-
-  const addExperience = () => {
-    const updatedData = {
-      ...localFormData,
-      experience: [
-        ...localFormData.experience,
-        {
-          title: '',
-          company: '',
-          duration: '',
-          description: '',
-        }
-      ]
-    };
-    setLocalFormData(updatedData);
-    setFormData(updatedData);
-  };
-
-  const removeExperience = (index: number) => {
-    const updatedExperience = localFormData.experience.filter((_, i) => i !== index);
-    const updatedData = {
-      ...localFormData,
-      experience: updatedExperience,
-    };
-    setLocalFormData(updatedData);
-    setFormData(updatedData);
-  };
-
-  const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const updatedData = {
-      ...localFormData,
-      contact: {
-        ...localFormData.contact,
-        [name]: value,
-      }
-    };
-    setLocalFormData(updatedData);
-    setFormData(updatedData);
-  };
-
   return (
     <form className="bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
+      {/* Basic Information Section */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-cyan-400">Basic Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="username" className="block text-white font-medium mb-2">
+              Username <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={localFormData.username}
+                onChange={handleUsernameChange}
+                onBlur={handleUsernameBlur}
+                disabled={isUpdatingUsername}
+                className={`w-full p-3 bg-gray-700 text-white border-2 ${
+                  usernameError ? 'border-red-500' : 'border-gray-500'
+                } rounded-md focus:outline-none focus:border-cyan-500 ${
+                  isUpdatingUsername ? 'opacity-75' : ''
+                }`}
+                placeholder="Enter your username"
+              />
+              {isUpdatingUsername && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-cyan-400"></div>
+                </div>
+              )}
+            </div>
+            {usernameError && (
+              <p className="text-red-500 text-sm mt-1">{usernameError}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Education Section */}
       <div className="space-y-4">
         <h3 className="text-xl font-semibold text-cyan-400">Education</h3>
@@ -162,7 +166,7 @@ export default function ProfileForm({
               value={localFormData.education.degree}
               onChange={handleEducationChange}
               className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="e.g., Bachelor of Science"
+              placeholder="e.g., Bachelor of Engineering"
             />
           </div>
           <div>
@@ -176,12 +180,12 @@ export default function ProfileForm({
               value={localFormData.education.field}
               onChange={handleEducationChange}
               className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="e.g., Computer Science"
+              placeholder="e.g., Software Engineering"
             />
           </div>
           <div>
             <label htmlFor="institution" className="block text-white font-medium mb-2">
-              Institution <span className="text-red-500">*</span>
+              Institution
             </label>
             <input
               type="text"
@@ -205,157 +209,6 @@ export default function ProfileForm({
               onChange={handleEducationChange}
               className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
               placeholder="e.g., 2024"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Experience Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-cyan-400">Work Experience</h3>
-          <button
-            type="button"
-            onClick={addExperience}
-            className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
-          >
-            Add Experience
-          </button>
-        </div>
-        {localFormData.experience.map((exp, index) => (
-          <div key={index} className="bg-gray-700 p-4 rounded-lg space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-cyan-400">Experience {index + 1}</h4>
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeExperience(index)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor={`title-${index}`} className="block text-white font-medium mb-2">
-                  Job Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id={`title-${index}`}
-                  name="title"
-                  value={exp.title}
-                  onChange={(e) => handleExperienceChange(index, e)}
-                  className="w-full p-3 bg-gray-600 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-                  placeholder="e.g., Software Engineer"
-                />
-              </div>
-              <div>
-                <label htmlFor={`company-${index}`} className="block text-white font-medium mb-2">
-                  Company <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id={`company-${index}`}
-                  name="company"
-                  value={exp.company}
-                  onChange={(e) => handleExperienceChange(index, e)}
-                  className="w-full p-3 bg-gray-600 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-                  placeholder="e.g., Tech Corp"
-                />
-              </div>
-              <div>
-                <label htmlFor={`duration-${index}`} className="block text-white font-medium mb-2">
-                  Duration
-                </label>
-                <input
-                  type="text"
-                  id={`duration-${index}`}
-                  name="duration"
-                  value={exp.duration}
-                  onChange={(e) => handleExperienceChange(index, e)}
-                  className="w-full p-3 bg-gray-600 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-                  placeholder="e.g., Jan 2020 - Present"
-                />
-              </div>
-              <div>
-                <label htmlFor={`description-${index}`} className="block text-white font-medium mb-2">
-                  Description
-                </label>
-                <textarea
-                  id={`description-${index}`}
-                  name="description"
-                  value={exp.description}
-                  onChange={(e) => handleExperienceChange(index, e)}
-                  rows={3}
-                  className="w-full p-3 bg-gray-600 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-                  placeholder="Describe your responsibilities and achievements"
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Contact Information */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-cyan-400">Contact Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="phone" className="block text-white font-medium mb-2">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={localFormData.contact.phone}
-              onChange={handleContactChange}
-              className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="Enter your phone number"
-            />
-          </div>
-          <div>
-            <label htmlFor="location" className="block text-white font-medium mb-2">
-              Location
-            </label>
-            <input
-              type="text"
-              id="location"
-              name="location"
-              value={localFormData.contact.location}
-              onChange={handleContactChange}
-              className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="Enter your location"
-            />
-          </div>
-          <div>
-            <label htmlFor="linkedin" className="block text-white font-medium mb-2">
-              LinkedIn Profile
-            </label>
-            <input
-              type="url"
-              id="linkedin"
-              name="linkedin"
-              value={localFormData.contact.linkedin}
-              onChange={handleContactChange}
-              className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="Enter your LinkedIn URL"
-            />
-          </div>
-          <div>
-            <label htmlFor="github" className="block text-white font-medium mb-2">
-              GitHub Profile
-            </label>
-            <input
-              type="url"
-              id="github"
-              name="github"
-              value={localFormData.contact.github}
-              onChange={handleContactChange}
-              className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
-              placeholder="Enter your GitHub URL"
             />
           </div>
         </div>

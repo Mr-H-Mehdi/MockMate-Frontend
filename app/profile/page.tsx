@@ -22,28 +22,21 @@ interface Project {
 }
 
 interface Profile {
+  userId: string;
+  username: string;
   education: {
     degree: string;
     field: string;
     institution: string;
     graduationYear: number;
   };
-  experience: Array<{
-    title: string;
-    company: string;
-    duration: string;
-    description: string;
-  }>;
-  contact: {
-    phone: string;
-    location: string;
-    linkedin: string;
-    github: string;
-  };
   skills: string[];
   projects: Project[];
   resume: string | null;
+  updatedAt: Date;
 }
+
+type SettingsTab = 'general' | 'password';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -53,6 +46,13 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     // Get user data from localStorage
@@ -75,7 +75,7 @@ export default function ProfilePage() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/profile`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `${localStorage.getItem('authToken')}`,
         },
       });
 
@@ -122,13 +122,13 @@ export default function ProfilePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `${localStorage.getItem('authToken')}`,
         },
         body: JSON.stringify({
-          userId: user.id,
-          ...formData,
+          education: formData?.education,
           skills,
           projects,
+          resume: formData?.resume
         }),
       });
 
@@ -141,6 +141,75 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to change password');
+      }
+
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setPasswordError('');
+      alert('Password changed successfully!');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setPasswordError('Failed to change password. Please check your current password.');
+    }
+  };
+
+  const handleUsernameUpdate = async (newUsername: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_BASE_URL}/api/user/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({
+          name: newUsername
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update username');
+      }
+
+      // Update local user data
+      if (user) {
+        const updatedUser: User = {
+          id: user.id,
+          name: newUsername,
+          email: user.email
+        };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Error updating username:', error);
+      throw error;
     }
   };
 
@@ -161,64 +230,154 @@ export default function ProfilePage() {
           {/* User Welcome Section */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-cyan-400">
-              {user ? `Welcome, ${user.name}` : "Welcome"}
+              {user ? `Welcome, ${user.email}` : "Welcome"}
             </h1>
             <p className="text-gray-400 mt-2">
-              Manage your profile and upload your resume to get started
+              Manage your profile and settings
             </p>
           </div>
 
-          {/* Resume Upload Section */}
+          {/* Settings Navigation */}
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Resume Upload</h2>
-            <CVDropZone
-              onFileDrop={handleFileDrop}
-              onFormDataUpdate={handleFormDataUpdate}
-            />
+            <div className="flex space-x-4 border-b border-gray-700">
+              <button
+                onClick={() => setActiveTab('general')}
+                className={`px-4 py-2 font-medium ${
+                  activeTab === 'general'
+                    ? 'text-cyan-400 border-b-2 border-cyan-400'
+                    : 'text-gray-400 hover:text-cyan-400'
+                }`}
+              >
+                General Settings
+              </button>
+              <button
+                onClick={() => setActiveTab('password')}
+                className={`px-4 py-2 font-medium ${
+                  activeTab === 'password'
+                    ? 'text-cyan-400 border-b-2 border-cyan-400'
+                    : 'text-gray-400 hover:text-cyan-400'
+                }`}
+              >
+                Change Password
+              </button>
+            </div>
           </div>
 
-          {/* Skills Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Skills</h2>
-            <SkillsSection
-              skills={skills}
-              onSkillsChange={setSkills}
-            />
-          </div>
+          {activeTab === 'general' ? (
+            <>
+              {/* Resume Upload Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Resume Upload</h2>
+                <CVDropZone
+                  onFileDrop={handleFileDrop}
+                  onFormDataUpdate={handleFormDataUpdate}
+                />
+              </div>
 
-          {/* Projects Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Projects</h2>
-            <ProjectsSection
-              projects={projects}
-              onProjectsChange={setProjects}
-            />
-          </div>
+              {/* Skills Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Skills</h2>
+                <SkillsSection
+                  skills={skills}
+                  onSkillsChange={setSkills}
+                />
+              </div>
 
-          {/* Profile Form Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Profile Information</h2>
-            <ProfileForm
-              initialData={formData}
-              setFormData={setFormData}
-              setIsFormComplete={setIsFormComplete}
-            />
-          </div>
+              {/* Projects Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Projects</h2>
+                <ProjectsSection
+                  projects={projects}
+                  onProjectsChange={setProjects}
+                />
+              </div>
 
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <button
-              onClick={handleSave}
-              disabled={!isFormComplete}
-              className={`px-6 py-3 rounded-lg font-medium shadow-sm transition-colors duration-200 ${
-                isFormComplete
-                  ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
-                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              Save Changes
-            </button>
-          </div>
+              {/* Profile Form Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Profile Information</h2>
+                <ProfileForm
+                  initialData={formData}
+                  setFormData={setFormData}
+                  setIsFormComplete={setIsFormComplete}
+                  userName={user?.name || ''}
+                  onUsernameUpdate={handleUsernameUpdate}
+                />
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSave}
+                  disabled={!isFormComplete}
+                  className={`px-6 py-3 rounded-lg font-medium shadow-sm transition-colors duration-200 ${
+                    isFormComplete
+                      ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="max-w-md mx-auto">
+              <div className="bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
+                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">Change Password</h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="currentPassword" className="block text-white font-medium mb-2">
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      id="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="newPassword" className="block text-white font-medium mb-2">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="newPassword"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-white font-medium mb-2">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  {passwordError && (
+                    <p className="text-red-500 text-sm">{passwordError}</p>
+                  )}
+
+                  <button
+                    onClick={handlePasswordChange}
+                    className="w-full px-6 py-3 bg-cyan-600 text-white rounded-lg font-medium hover:bg-cyan-700 transition-colors"
+                  >
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
 
         <div className="mx-auto">
