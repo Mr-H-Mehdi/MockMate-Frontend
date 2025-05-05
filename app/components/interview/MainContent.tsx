@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "../home/ThemeContext";
 
 const MainContent = ({
   interviewData,
@@ -24,6 +25,8 @@ const MainContent = ({
   const [userId, setUserId] = useState<string | null>(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [animateVisualizer, setAnimateVisualizer] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("user_id");
@@ -54,9 +57,9 @@ const MainContent = ({
   return (
     <div className="flex-1 p-8 animate__animated animate__fadeInRight">
       <header className="paddingX flexCenter pt-2"></header>
-      <div className="flex-1 grid grid-row gap-6 p-2 text-white">
+      <div className={`flex-1 grid grid-row gap-6 p-2 ${isDark ? 'text-white' : 'text-onPrimary-light'}`}>
         {/* Instructions Section */}
-        <div className="items-center bg-gray-800 mb-6 p-4 rounded-lg shadow-lg border-l-4 border-red-500 animate__animated animate__fadeInDown animate__delay-1s">
+        <div className={`items-center ${isDark ? 'bg-gray-800' : 'bg-gray-100'} mb-6 p-4 rounded-lg shadow-lg border-l-4 border-red-500 animate__animated animate__fadeInDown animate__delay-1s`}>
           <p className="text-lg flex items-center">
             <span className="text-red-500 text-2xl mr-2">⁕</span> 
             Please set up in a noise-free environment with a clear microphone.
@@ -64,7 +67,7 @@ const MainContent = ({
         </div>
 
         {/* AI Interviewer Section */}
-        <div className={`flex flex-col items-center bg-gray-800 justify-center p-16 border border-gray-600 rounded-lg shadow-lg transition-all duration-500 ${isIntervieweeDisabled ? 'bg-gray-700 border-blue-500' : ''} animate__animated animate__fadeIn animate__delay-2s`}>
+        <div className={`flex flex-col items-center ${isDark ? 'bg-gray-800' : 'bg-gray-100'} justify-center p-16 border ${isDark ? 'border-gray-600' : 'border-gray-300'} rounded-lg shadow-lg transition-all duration-500 ${isIntervieweeDisabled ? isDark ? 'bg-gray-700 border-blue-500' : 'bg-gray-200 border-blue-500' : ''} animate__animated animate__fadeIn animate__delay-2s`}>
           <div className={`text-6xl pb-2 ${isIntervieweeDisabled ? 'animate__animated animate__pulse animate__infinite' : ''}`}>🤖</div>
           <p className="text-lg font-semibold mb-4">AI Interviewer</p>
           
@@ -79,7 +82,6 @@ const MainContent = ({
                     className="bg-blue-500 w-1 rounded-full"
                     style={{
                       height: `${20 + Math.random() * 30}px`,
-                      // FIX: Combine all animation properties into a single shorthand
                       animation: `visualizerAnimation ${0.5 + Math.random() * 0.5}s ease-in-out ${bar * 0.08}s infinite alternate`
                     }}
                   ></div>
@@ -91,8 +93,8 @@ const MainContent = ({
 
         {/* Human Interviewee Section */}
         <div
-          className={`flex flex-col items-center bg-gray-800 justify-center p-8 border border-gray-600 rounded-lg shadow-lg transition-all duration-300 ${
-            isIntervieweeDisabled ? 'opacity-50 pointer-events-none' : isRecording ? 'border-green-500 bg-gray-700' : ''
+          className={`flex flex-col items-center ${isDark ? 'bg-gray-800' : 'bg-gray-100'} justify-center p-8 border ${isDark ? 'border-gray-600' : 'border-gray-300'} rounded-lg shadow-lg transition-all duration-300 ${
+            isIntervieweeDisabled ? 'opacity-50 pointer-events-none' : isRecording ? 'border-green-500 ' + (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''
           } animate__animated animate__fadeIn animate__delay-3s`}
         >
           <p className="text-blue-400 text-3xl font-semibold mb-2 animate__animated animate__fadeIn"> Recording Area </p>
@@ -114,12 +116,12 @@ const MainContent = ({
             > {buttonText}
             </button>
             
-            <div className="text-white px-4 pr-6 q py-2 rounded-full bg-gray-700 font-mono">
+            <div className={`${isDark ? 'text-white' : 'text-gray-800'} px-4 pr-6 py-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} font-mono`}>
               🕒 {elapsedTime ? formatTime(elapsedTime) : "00:00"}
             </div>
             
             <button
-              className={`bg-red-500  text-white font-semibold px-4 py-3 rounded-lg transition-all duration-300 ${
+              className={`bg-red-500 text-white font-semibold px-4 py-3 rounded-lg transition-all duration-300 ${
                 !isRecording ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600 hover:scale-105'
               } flex items-center`}
               onClick={onDiscardRecording}
@@ -142,7 +144,6 @@ const MainContent = ({
                     className="bg-green-500 w-1 rounded-full"
                     style={{
                       height: `${10 + Math.random() * 20}px`,
-                      // FIX: Combine all animation properties into a single shorthand
                       animation: `visualizerAnimation ${0.3 + Math.random() * 0.3}s ease-in-out ${bar * 0.05}s infinite alternate`
                     }}
                   ></div>

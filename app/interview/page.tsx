@@ -388,8 +388,7 @@ const InterviewPage = () => {
 
 
 
-    // const {theme}=useTheme();
-    const theme="light";
+ const {theme}=useTheme();
   return (
     <>
       {/* Add animation styles */}

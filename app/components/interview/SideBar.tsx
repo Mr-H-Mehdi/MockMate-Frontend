@@ -1,7 +1,7 @@
-// components/interview/Sidebar.tsx
 import Image from "next/image";
 import { logo } from "@/public";
 import { useEffect, useState } from "react";
+import { useTheme } from "../home/ThemeContext";
 
 const Sidebar = ({
   question,
@@ -23,6 +23,8 @@ const Sidebar = ({
   shouldShowReplay: boolean;
 }) => {
   const [showQuestion, setShowQuestion] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     // Add delay before showing question for a staggered animation effect
@@ -34,15 +36,17 @@ const Sidebar = ({
   }, []);
 
   return (
-    <div className="w-[32%] bg-gray-800 text-white p-4 h-full relative transition-all duration-500 ease-out animate__animated animate__fadeInLeft">
+    <div className={`w-[32%] ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-onPrimary-light'} p-4 h-full relative transition-all duration-500 ease-out animate__animated animate__fadeInLeft`}>
       <div className="animate__animated animate__fadeIn animate__delay-1s">
-        <Image
-          src={logo}
-          alt="hoobank"
-          width={60}
-          height={60}
-          loading="eager"
-        />
+              <div className={`${isDark ? "bg-black p-[3px] rounded-md inline-block" : "bg-gray-700 p-[3px] rounded-md inline-block"}`}>
+                <Image
+                  src={logo}
+                  alt="hoobank"
+                  width={60}
+                  height={60}
+                  loading="eager"
+                />
+              </div>{" "}
       </div>
 
       <div className="pt-8">
@@ -55,16 +59,20 @@ const Sidebar = ({
             showQuestion ? "animate__animated animate__fadeIn" : "opacity-0"
           }`}
         >
-          <h4 className="text-lg font-semibold mb-4 text-blue-400">
+          <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
             {question_statement}:
           </h4>
-          <div className="bg-gray-700 p-4 rounded-lg shadow-lg border-l-4 border-blue-500 animate__animated animate__fadeInUp animate__delay-2s">
+          <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg shadow-lg border-l-4 border-blue-500 animate__animated animate__fadeInUp animate__delay-2s`}>
             <p className="text-sm leading-relaxed">{question}</p>
           </div>
           {input && expected_output && (
-            <div className="bg-gray-700 p-4 rounded-lg shadow-lg mt-4 border-blue-500 animate__animated animate__fadeInUp animate__delay-2s">
-              <p className="text-sm leading-relaxed"><span className="text-blue-300 font-semibold"> Input:</span> {input}</p>
-              <p className="text-sm leading-relaxed"><span className="text-blue-300 font-semibold"> Expected Output: </span> {expected_output}</p>
+            <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg shadow-lg mt-4 border-blue-500 animate__animated animate__fadeInUp animate__delay-2s`}>
+              <p className="text-sm leading-relaxed">
+                <span className={`${isDark ? 'text-blue-300' : 'text-blue-600'} font-semibold`}> Input:</span> {input}
+              </p>
+              <p className="text-sm leading-relaxed">
+                <span className={`${isDark ? 'text-blue-300' : 'text-blue-600'} font-semibold`}> Expected Output: </span> {expected_output}
+              </p>
             </div>
           )}
           {shouldShowReplay && (
