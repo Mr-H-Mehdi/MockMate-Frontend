@@ -21,32 +21,56 @@ export default function Home() {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+    const wakeupServers = () => {
+      // Make both requests simultaneously without waiting for each other
+      const wakeBackend = fetch(`${apiUrl}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(response => {
+          console.log("Backend API status:", response.status);
+          return response;
+        })
+        .catch(error => {
+          console.log("Error waking backend:", error);
+          // Retry after a short delay if the request fails
+          setTimeout(() => wakeBackend, 300);
         });
-        console.log("Response from Backend API:", response);
 
-        const mlresponse = await fetch(`${mlApiUrl}/`, {
-          method: "GET",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+      const wakeML = fetch(`${mlApiUrl}/`, {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(response => {
+          console.log("ML API status:", response.status);
+          return response;
+        })
+        .catch(error => {
+          console.log("Error waking ML service:", error);
+          // Retry after a short delay if the request fails
+          setTimeout(() => wakeML, 300);
         });
-        console.log("Response from ML API:", mlresponse);
 
-        // You can handle response here if needed
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+      // You can use Promise.all to wait for both if needed
+      Promise.all([wakeBackend, wakeML])
+        .then(() => console.log("Both services are awake"))
+        .catch(error => console.log("Error waking services:", error));
     };
 
-    fetchData();
+    // Initial wake-up call
+    wakeupServers();
+
+    // Optional: Set up a periodic ping to keep the services awake
+    // This will ping both servers every 14 minutes to prevent them from going idle
+    const keepAliveInterval = setInterval(wakeupServers, 14 * 60 * 1000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(keepAliveInterval);
   }, []);
 
   return (

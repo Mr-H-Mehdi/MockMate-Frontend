@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import 'animate.css'; // Using the animate.css library
 
 const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+const mlApiUrl = process.env.NEXT_PUBLIC_ML_API_BASE_URL;
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -75,6 +76,59 @@ const Auth = () => {
     }
   }, [router]);
 
+  useEffect(() => {
+    const wakeupServers = () => {
+      // Make both requests simultaneously without waiting for each other
+      const wakeBackend = fetch(`${apiUrl}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(response => {
+          console.log("Backend API status:", response.status);
+          return response;
+        })
+        .catch(error => {
+          console.log("Error waking backend:", error);
+          // Retry after a short delay if the request fails
+          setTimeout(() => wakeBackend, 300);
+        });
+
+      const wakeML = fetch(`${mlApiUrl}/`, {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(response => {
+          console.log("ML API status:", response.status);
+          return response;
+        })
+        .catch(error => {
+          console.log("Error waking ML service:", error);
+          // Retry after a short delay if the request fails
+          setTimeout(() => wakeML, 300);
+        });
+
+      // You can use Promise.all to wait for both if needed
+      Promise.all([wakeBackend, wakeML])
+        .then(() => console.log("Both services are awake"))
+        .catch(error => console.log("Error waking services:", error));
+    };
+
+    // Initial wake-up call
+    wakeupServers();
+
+    // Optional: Set up a periodic ping to keep the services awake
+    // This will ping both servers every 14 minutes to prevent them from going idle
+    const keepAliveInterval = setInterval(wakeupServers, 14 * 60 * 1000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(keepAliveInterval);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -92,7 +146,7 @@ const Auth = () => {
     })
       .then(response => {
         console.log(response);
-        
+
         if (!response.ok) {
           throw new Error(`Authentication failed! Status: ${response.status}`);
         }
@@ -184,13 +238,13 @@ const Auth = () => {
 
       {/* AI Image, positioned large and in the same place */}
       <div className="absolute top-1/4 right-2/4  transform -translate-y-1/4 z-10 animate__animated animate__fadeInLeft animate__delay-1s">
-        <Image 
-          src={ai} 
-          alt="AI Avatar" 
-          width={600} 
+        <Image
+          src={ai}
+          alt="AI Avatar"
+          width={600}
           height={600}
           className="max-w-none md:max-w-3xl"
-          loading="eager" 
+          loading="eager"
         />
       </div>
 
@@ -341,7 +395,7 @@ const Auth = () => {
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/20 rounded-full blur-2xl"></div>
         <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-indigo-600/20 rounded-full blur-3xl"></div>
       </motion.div>
-      
+
       {/* Mobile responsiveness adjustments */}
       <style jsx global>{`
         @media (max-width: 768px) {
