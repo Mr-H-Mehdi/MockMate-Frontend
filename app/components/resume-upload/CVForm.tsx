@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../home/ThemeContext";
 
 const CVForm = ({
   initialData,
@@ -25,7 +26,7 @@ const CVForm = ({
     projects: "",
     skills: "",
   });
-
+  const { theme } = useTheme();
   // Flag to track if initialData has been processed
   const [initialDataProcessed, setInitialDataProcessed] = useState(false);
 
@@ -103,11 +104,15 @@ const CVForm = ({
   };
 
   return (
-    <form className="bg-gray-800 p-6 rounded-lg shadow-lg py-3 my-8">
+    <form className={`${
+                  theme === "dark"
+                    ? "bg-gray-900 border border-gray-800 text-white"
+                    : "bg-white border border-gray-200 text-gray-800"
+                }  p-6 rounded-lg shadow-lg py-3 my-8`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Name Field */}
         <div>
-          <label htmlFor="name" className="block text-white font-medium mb-2">
+          <label htmlFor="name" className="block font-medium mb-2">
             Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -116,14 +121,18 @@ const CVForm = ({
             name="name"
             value={localFormData.name}
             onChange={handleChange}
-            className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+            className={`w-full p-3 ${
+              theme === "dark"
+                ? "bg-gray-700"
+                : "bg-gray-200"
+            }  border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500`}
             placeholder="Enter your name"
           />
         </div>
 
         {/* Role Field */}
         <div>
-          <label htmlFor="role" className="block text-white font-medium mb-2">
+          <label htmlFor="role" className="block  font-medium mb-2">
             Role <span className="text-red-500">*</span>
           </label>
           <select
@@ -131,7 +140,11 @@ const CVForm = ({
             name="total_questions"
             value={role}
             onChange={handleRoleChange}
-            className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+            className={`w-full grow-1 p-3 ${
+              theme === "dark"
+                ? "bg-gray-700"
+                : "bg-gray-200"
+            }  border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500`}
           >
             <option value={"Junior Frontend Developer"}>
               Junior Frontend Developer
@@ -160,7 +173,7 @@ const CVForm = ({
         <div>
           <label
             htmlFor="projects"
-            className="block text-white font-medium mb-2"
+            className="block  font-medium mb-2"
           >
             Projects <span className="text-red-500">*</span>
           </label>
@@ -170,14 +183,18 @@ const CVForm = ({
             value={localFormData.projects}
             onChange={handleChange}
             rows={4}
-            className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+            className={`w-full p-3 ${
+              theme === "dark"
+                ? "bg-gray-700"
+                : "bg-gray-200"
+            }  border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500`}
             placeholder="Enter your projects"
           />
         </div>
 
         {/* Skills Field */}
         <div>
-          <label htmlFor="skills" className="block text-white font-medium mb-2">
+          <label htmlFor="skills" className="block  font-medium mb-2">
             Skills <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -186,7 +203,11 @@ const CVForm = ({
             value={localFormData.skills}
             onChange={handleChange}
             rows={4}
-            className="w-full p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+            className={`w-full p-3 ${
+              theme === "dark"
+                ? "bg-gray-700"
+                : "bg-gray-200"
+            }  border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500`}
             placeholder="Enter your skills"
           />
         </div>
@@ -195,16 +216,20 @@ const CVForm = ({
         <div className="flex ">
           <label
             htmlFor="total_questions"
-            className="w-1/3 pt-2.5 grow-1 block text-white font-medium mb-2 relative "
+            className="w-1/3 pt-2.5 grow-1 block  font-medium mb-2 relative "
           >
             Total Questions <span className="text-red-500">:</span>
-          </label>
+          </label>  
           <select
             id="total_questions"
             name="total_questions"
             value={totalQuestions}
             onChange={handleQuestionChange}
-            className="w-full grow-1 p-3 bg-gray-700 text-white border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500"
+            className={`w-full grow-1 p-3 ${
+              theme === "dark"
+                ? "bg-gray-700"
+                : "bg-gray-200"
+            }  border-2 border-gray-500 rounded-md focus:outline-none focus:border-blue-500`}
           >
             <option value={1}>1</option>
             <option value={3}>3</option>

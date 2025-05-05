@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useTheme } from "../home/ThemeContext";
 
 const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -16,6 +17,7 @@ const CVDropZone = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [parseSuccess, setParseSuccess] = useState<boolean>(false);
+  const {theme}=useTheme();
 
   const handleDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -74,13 +76,13 @@ const CVDropZone = ({
   });
 
   return (
-    <div className="p-7 w-full mx-auto rounded-lg shadow-lg bg-gray-800 text-white">
+    <div className={`p-7 w-full mx-auto rounded-lg shadow-lg ${theme==="dark"?"bg-gray-800 text-white":"bg-white text-black"} `}>
       <h2 className="text-xl font-semibold text-center mb-4">
         Upload File (PDF or DOCX)
       </h2>
       <div
         {...getRootProps()}
-        className="cursor-pointer h-44 border-2 border-solid border-secondary p-16 text-center rounded-lg transition-colors hover:text-primary hover:bg-blue-50 "
+        className={`cursor-pointer h-44 border-2 border-solid border-secondary p-16 text-center rounded-lg transition-colors ${theme==="dark"?"hover:text-primary hover:bg-blue-50 ":"text-black hover:text-primary hover:bg-blue-50"} `}
       >
         <input {...getInputProps()} />
         <p>Drag and drop a file here, or click to select a file</p>
@@ -90,7 +92,7 @@ const CVDropZone = ({
         <div className="mt-4">
           <h3 className="text-lg font-medium">Selected File:</h3>
           <div className="flex items-center">
-            <p className="text-secondary font-bold">{file.name}</p>
+            <p className={`${theme==="dark"?"text-secondary":"text-black"} font-bold`}>{file.name}</p>
             
             {isLoading && (
               <div className="ml-3 flex items-center">
