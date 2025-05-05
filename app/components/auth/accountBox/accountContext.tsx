@@ -1,3 +1,8 @@
-import { createContext } from "react";
+import { createContext } from 'react';
 
-export const AccountContext = createContext();
+interface AccountContextType {
+  switchToSignup: () => void;
+  switchToSignin: () => void;
+}
+
+export const AccountContext = createContext<AccountContextType | null>(null);
