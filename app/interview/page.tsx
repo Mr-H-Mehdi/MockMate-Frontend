@@ -9,6 +9,7 @@ import Modal from "../components/interview/Modal";
 import Sidebar from "../components/interview/SideBar";
 import MainContent from "../components/interview/MainContent";
 import { useRouter } from "next/navigation";
+import { useTheme } from "../components/home/ThemeContext";
 
 // Add global styles for animations
 const animationStyles = `
@@ -385,12 +386,16 @@ const InterviewPage = () => {
     ? question_no
     : total_questions;
 
+
+
+    // const {theme}=useTheme();
+    const theme="light";
   return (
     <>
       {/* Add animation styles */}
       <style jsx global>{animationStyles}</style>
 
-      <main className={`h-screen overflow-hidden flex items-center bg-primary w-full font-poppins justify-center transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <main className={`h-screen overflow-hidden flex items-center ${theme==="dark"?"bg-primary":"bg-primary-light"} w-full font-poppins justify-center transition-opacity duration-500 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <Sidebar
         input=""
         expected_output=""
