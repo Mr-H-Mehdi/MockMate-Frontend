@@ -15,8 +15,8 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black  backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`bg-gray-800  rounded-lg p-6 shadow-lg max-w-md w-full relative ${isSuccess ? 'border-l-4  border-secondary' : 'border-l-4 border-red-500'}`}>
+    <div className="fixed inset-0 bg-black backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+      <div className={`bg-gray-800 rounded-lg p-6 shadow-lg max-w-md w-full relative ${isSuccess ? 'border-l-4 border-secondary' : 'border-l-4 border-red-500'}`}>
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -42,7 +42,7 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <span className="text-lg font-medium text-gray-800">{message}</span>
+              <span className="text-lg font-medium text-white">{message}</span>
             </div>
           )}
         </div>
@@ -72,6 +72,8 @@ export default function Home() {
   const [totalQuestions, setTotalQuestions] = useState(5);
   const [role, setRole] = useState("Junior Frontend Developer");
   const [isLoading, setIsLoading] = useState(true);
+  // Add button loading state
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
 
   const [user, setUser] = useState<{ id: string, name: string, email: string } | null>(null);
   const router = useRouter();
@@ -222,6 +224,9 @@ export default function Home() {
       return;
     }
 
+    // Set button to loading state
+    setIsButtonLoading(true);
+
     const dataToSend = {
       user_id: user?.id,
       name: formData.name,
@@ -262,12 +267,15 @@ export default function Home() {
       setIsSuccessModal(true);
       setModalOpen(true);
       
+      // Keep button in loading state since we're moving to the next page
       setTimeout(() => {
         navigateToInterview();
       }, 1500);
     } catch (error) {
       console.error("Error:", error);
-      setModalMessage("Error starting the interview");
+      // Re-enable the button if there's an error
+      setIsButtonLoading(false);
+      setModalMessage("Error starting the interview. Please try again.");
       setIsSuccessModal(false);
       setModalOpen(true);
     }
@@ -314,6 +322,7 @@ export default function Home() {
             text="Start Interview"
             onClick={handleButtonClick}
             disabled={!isFormComplete}
+            loading={isButtonLoading}
           />
         </section>
       </section>
