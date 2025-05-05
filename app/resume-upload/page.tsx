@@ -5,6 +5,7 @@ import CVDropZone from "../components/resume-upload/CVDropZone";
 import CVForm from "../components/resume-upload/CVForm";
 import StartButton from "../components/resume-upload/StartButton";
 import { useRouter } from "next/navigation";
+import { useTheme } from "../components/home/ThemeContext";
 
 const apiUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
@@ -58,6 +59,7 @@ const StatusModal = ({ isOpen, onClose, message, isSuccess }:{ isOpen: boolean, 
 };
 
 export default function Home() {
+  const { theme } = useTheme();
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<{
     name: string;
@@ -226,7 +228,7 @@ export default function Home() {
   }
 
   return (
-    <main className="h-screen items-center bg-primary w-full font-poppins justify-center">
+    <main className={`h-screen items-center ${ theme==="dark"?"bg-primary":"bg-primary-light"} w-full font-poppins justify-center`}>
       <StatusModal 
         isOpen={modalOpen}
         onClose={isSuccessModal ? navigateToInterview : () => setModalOpen(false)}
@@ -238,7 +240,7 @@ export default function Home() {
           <Navbar />
         </nav>
       </header>
-      <section className="bg-primary paddingX flexStart justify-end py-8">
+      <section className={`${ theme==="dark"?"bg-primary":"bg-primary-light"} paddingX flexStart justify-end py-8`}>
         <section className="boxWidth">
           <CVDropZone
             onFileDrop={handleFileDrop}
